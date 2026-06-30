@@ -5,7 +5,8 @@ CRM interno para Rosa Reina, adaptado desde la base tecnica de Nido pero recorta
 ## Arquitectura
 
 - Next.js 16 + React 19 para la app interna.
-- Supabase `fgqlgehbtjdwcilyroiq` como data plane.
+- Supabase `fgqlgehbtjdwcilyroiq` como data plane administrativo, el mismo proyecto usado por la base Nido.
+- El backend del CRM lee datos privilegiados con `SUPABASE_SERVICE_ROLE_KEY`; esa clave va solo en servidor y nunca en el navegador.
 - n8n como automatizacion externa para WhatsApp y loader RAG.
 - RAG publico en `public.documentos` / `public.documento_chunks`.
 - Vault privado en schema `private`, con RPC `match_bot_safe_knowledge` limitada a `service_role`.
@@ -46,8 +47,8 @@ La migracion aplicada crea:
 
 Verificacion actual tras aplicar:
 
-- `live_documents`: 1
-- `public_chunks`: 6
+- `live_documents`: 2
+- `public_chunks`: 10
 - `sensitive_recoverable_chunks`: 0
 - `orphan_chunks`: 0
 - `private_bot_safe_chunks`: 0

@@ -238,7 +238,7 @@ export async function searchPublicRag(query: string, matchCount = 4) {
   const client = getRequiredDataClient();
   const embedding = await createEmbedding(query);
   if (!embedding) return [];
-  const { data } = await (client as unknown as LooseRpcClient).rpc("match_documents_telegram", {
+  const { data } = await (client as unknown as LooseRpcClient).rpc("match_documents_whatsapp", {
     query_embedding: embedding,
     match_count: matchCount,
     filter: { tipos: ["catalogo", "faq", "publicidad"] },
