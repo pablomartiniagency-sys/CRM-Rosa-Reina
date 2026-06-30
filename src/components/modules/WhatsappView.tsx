@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { ErrorBlock, LoadingBlock, MetricCard, ModuleHeader } from "@/components/modules/Shared";
+import { ErrorBlock, LoadingBlock, MetricCard, ModuleHeader, SetupNotice } from "@/components/modules/Shared";
 import { useCrmOverview } from "@/components/modules/useCrmOverview";
 
 const CHECKS = [
@@ -20,6 +20,7 @@ export function WhatsappView() {
   if (error || !data) return <ErrorBlock message={error ?? "Sin datos"} />;
 
   const whatsappActivities = data.activities.filter((activity) => activity.tipo === "WhatsApp");
+  const setupMode = data.dataMode === "setup";
 
   return (
     <section>
@@ -28,6 +29,8 @@ export function WhatsappView() {
         title="WhatsApp seguro"
         description="Panel de control del flujo Meta Cloud API. Telegram queda fuera de foco; WhatsApp se apoya en CRM, RAG publico y allowlist bot_safe."
       />
+
+      {setupMode ? <SetupNotice issues={data.setupIssues} /> : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard label="Actividades WhatsApp" value={whatsappActivities.length} note="Ultimas interacciones visibles" />
@@ -67,7 +70,9 @@ export function WhatsappView() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-ink-500">No hay mensajes WhatsApp recientes en la ventana consultada.</p>
+              <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+                {setupMode ? "Los mensajes reales apareceran aqui al conectar Supabase admin." : "No hay mensajes WhatsApp recientes en la ventana consultada."}
+              </p>
             )}
           </div>
         </Card>

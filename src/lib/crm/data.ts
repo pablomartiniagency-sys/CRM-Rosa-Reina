@@ -12,6 +12,7 @@ import type {
   Order,
   RagAudit,
   RagDocument,
+  SetupIssue,
 } from "@/types/crm";
 
 type Supabase = NonNullable<ReturnType<typeof getDataAdminClient>>;
@@ -40,6 +41,52 @@ type LooseSchemaClient = {
   schema: (schema: string) => LoosePrivateSchema;
 };
 
+const DATA_PLANE_SETUP_ISSUES: SetupIssue[] = [
+  {
+    code: "missing_supabase_service_role",
+    variable: "SUPABASE_SERVICE_ROLE_KEY",
+    message: "Conecta Supabase admin para ver datos reales del CRM.",
+  },
+];
+
+export function isDataPlaneConfigurationError(error: unknown) {
+  return error instanceof Error && error.message.includes("Supabase data plane is not configured");
+}
+
+export function createSetupRagAudit(): RagAudit {
+  return {
+    dataMode: "setup",
+    setupIssues: DATA_PLANE_SETUP_ISSUES,
+    liveDocuments: [],
+    publicChunks: 0,
+    sensitiveRecoverableChunks: 0,
+    orphanChunks: 0,
+    privateBotSafeChunks: 0,
+  };
+}
+
+export function createSetupDashboardSnapshot(): DashboardSnapshot {
+  return {
+    dataMode: "setup",
+    setupIssues: DATA_PLANE_SETUP_ISSUES,
+    accounts: [],
+    contacts: [],
+    leads: [],
+    orders: [],
+    activities: [],
+    ragAudit: createSetupRagAudit(),
+    counts: {
+      accounts: 0,
+      contacts: 0,
+      contactMethods: 0,
+      leads: 0,
+      orders: 0,
+      activities: 0,
+      ragDocuments: 0,
+    },
+  };
+}
+
 async function countRows(client: Supabase, table: string, deletedAt = true) {
   let query = client.from(table).select("*", { count: "exact", head: true });
   if (deletedAt) query = query.is("deleted_at", null);
@@ -61,6 +108,7 @@ export async function fetchRagAudit(): Promise<RagAudit> {
     };
     const docs = await fetchRagDocuments(client);
     return {
+      dataMode: "live",
       liveDocuments: docs,
       publicChunks: Number(audit.public_chunks ?? 0),
       sensitiveRecoverableChunks: Number(audit.sensitive_recoverable_chunks ?? 0),
@@ -71,6 +119,7 @@ export async function fetchRagAudit(): Promise<RagAudit> {
 
   const docs = await fetchRagDocuments(client);
   return {
+    dataMode: "live",
     liveDocuments: docs,
     publicChunks: docs.reduce((sum, doc) => sum + (doc.chunks ?? 0), 0),
     sensitiveRecoverableChunks: 0,
@@ -145,6 +194,7 @@ export async function fetchDashboardSnapshot(): Promise<DashboardSnapshot> {
   ]);
 
   return {
+    dataMode: "live",
     accounts: ((accounts.data ?? []) as Account[]),
     contacts: ((contacts.data ?? []) as Contact[]),
     leads: ((leads.data ?? []) as Lead[]),

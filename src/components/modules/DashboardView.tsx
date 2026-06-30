@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { ErrorBlock, LoadingBlock, MetricCard, ModuleHeader, StatusBadge } from "@/components/modules/Shared";
+import { ErrorBlock, LoadingBlock, MetricCard, ModuleHeader, SetupNotice, StatusBadge } from "@/components/modules/Shared";
 import { useCrmOverview } from "@/components/modules/useCrmOverview";
 
 export function DashboardView() {
@@ -12,6 +12,7 @@ export function DashboardView() {
   if (error || !data) return <ErrorBlock message={error ?? "Sin datos"} />;
 
   const ragOk = data.ragAudit.sensitiveRecoverableChunks === 0 && data.ragAudit.orphanChunks === 0;
+  const setupMode = data.dataMode === "setup";
 
   return (
     <section>
@@ -21,7 +22,9 @@ export function DashboardView() {
         description="Vista interna para clientes, oportunidades, pedidos, WhatsApp y RAG seguro. Los precios y datos criticos se tratan como informacion privada y derivable."
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      {setupMode ? <SetupNotice issues={data.setupIssues} /> : null}
+
+      <div className="mt-4 grid gap-4 md:grid-cols-4">
         <MetricCard label="Clientes" value={data.counts.accounts} note="Cuentas de escuelas y empresas" />
         <MetricCard label="Contactos" value={data.counts.contacts} note={`${data.counts.contactMethods} metodos normalizados`} />
         <MetricCard label="Leads" value={data.counts.leads} note="Consultas y oportunidades abiertas" />
@@ -35,17 +38,23 @@ export function DashboardView() {
             <Badge variant="info">WhatsApp y email</Badge>
           </CardHeader>
           <div className="space-y-3">
-            {data.activities.slice(0, 8).map((activity) => (
-              <div key={activity.actividad_id} className="rounded-lg border border-gray-100 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="truncate text-sm font-semibold text-ink-900">{activity.asunto ?? activity.tipo}</p>
-                  <StatusBadge value={activity.ai_urgencia ?? activity.direccion} />
+            {data.activities.length ? (
+              data.activities.slice(0, 8).map((activity) => (
+                <div key={activity.actividad_id} className="rounded-lg border border-gray-100 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-sm font-semibold text-ink-900">{activity.asunto ?? activity.tipo}</p>
+                    <StatusBadge value={activity.ai_urgencia ?? activity.direccion} />
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-sm text-ink-500">
+                    {activity.ai_resumen || activity.descripcion}
+                  </p>
                 </div>
-                <p className="mt-1 line-clamp-2 text-sm text-ink-500">
-                  {activity.ai_resumen || activity.descripcion}
-                </p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+                {setupMode ? "La actividad real aparecera aqui al conectar Supabase admin." : "No hay actividad reciente."}
+              </p>
+            )}
           </div>
         </Card>
 

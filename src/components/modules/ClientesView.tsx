@@ -1,13 +1,14 @@
 "use client";
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { EmptyBlock, ErrorBlock, LoadingBlock, ModuleHeader } from "@/components/modules/Shared";
+import { ErrorBlock, LoadingBlock, ModuleHeader, SetupNotice } from "@/components/modules/Shared";
 import { useCrmOverview } from "@/components/modules/useCrmOverview";
 
 export function ClientesView() {
   const { data, error, loading } = useCrmOverview();
   if (loading) return <LoadingBlock />;
   if (error || !data) return <ErrorBlock message={error ?? "Sin datos"} />;
+  const setupMode = data.dataMode === "setup";
 
   return (
     <section>
@@ -16,6 +17,8 @@ export function ClientesView() {
         title="Clientes y contactos"
         description="Escuelas, centros infantiles y empresas con sus contactos utiles para WhatsApp, email e historial comercial."
       />
+
+      {setupMode ? <SetupNotice issues={data.setupIssues} /> : null}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card className="rounded-lg">
@@ -32,13 +35,21 @@ export function ClientesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {data.accounts.map((account) => (
-                  <tr key={account.id}>
-                    <td className="px-3 py-3 font-medium text-ink-900">{account.nombre}</td>
-                    <td className="px-3 py-3 text-ink-500">{account.email ?? "-"}</td>
-                    <td className="px-3 py-3 text-ink-500">{account.telefono ?? "-"}</td>
+                {data.accounts.length ? (
+                  data.accounts.map((account) => (
+                    <tr key={account.id}>
+                      <td className="px-3 py-3 font-medium text-ink-900">{account.nombre}</td>
+                      <td className="px-3 py-3 text-ink-500">{account.email ?? "-"}</td>
+                      <td className="px-3 py-3 text-ink-500">{account.telefono ?? "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-3 py-6 text-sm text-ink-500" colSpan={3}>
+                      {setupMode ? "Las cuentas reales apareceran aqui al conectar Supabase admin." : "No hay cuentas sincronizadas."}
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -59,7 +70,9 @@ export function ClientesView() {
               ))}
             </div>
           ) : (
-            <EmptyBlock>No hay contactos sincronizados.</EmptyBlock>
+            <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+              {setupMode ? "Los contactos reales apareceran aqui al conectar Supabase admin." : "No hay contactos sincronizados."}
+            </p>
           )}
         </Card>
       </div>

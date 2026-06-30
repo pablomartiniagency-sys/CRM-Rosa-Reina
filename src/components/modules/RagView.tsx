@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { ErrorBlock, LoadingBlock, MetricCard, ModuleHeader } from "@/components/modules/Shared";
+import { ErrorBlock, LoadingBlock, MetricCard, ModuleHeader, SetupNotice } from "@/components/modules/Shared";
 import type { RagAudit } from "@/types/crm";
 
 export function RagView() {
@@ -27,6 +27,7 @@ export function RagView() {
   if (error || !audit) return <ErrorBlock message={error ?? "Sin datos"} />;
 
   const safe = audit.sensitiveRecoverableChunks === 0 && audit.orphanChunks === 0;
+  const setupMode = audit.dataMode === "setup";
 
   return (
     <section>
@@ -35,6 +36,8 @@ export function RagView() {
         title="RAG seguro"
         description="Separacion entre RAG publico, vault privado, allowlist bot_safe y datos criticos estructurados."
       />
+
+      {setupMode ? <SetupNotice issues={audit.setupIssues} /> : null}
 
       <div className="grid gap-4 md:grid-cols-4">
         <MetricCard label="Docs publicos" value={audit.liveDocuments.length} note="Documentos vivos" />
@@ -50,17 +53,23 @@ export function RagView() {
             <Badge variant={safe ? "success" : "danger"}>{safe ? "Sin fugas" : "Revisar"}</Badge>
           </CardHeader>
           <div className="space-y-3">
-            {audit.liveDocuments.map((doc) => (
-              <div key={doc.documento_id} className="rounded-lg border border-gray-100 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="font-semibold text-ink-900">{doc.titulo}</p>
-                  <Badge variant="info">{doc.tipo}</Badge>
+            {audit.liveDocuments.length ? (
+              audit.liveDocuments.map((doc) => (
+                <div key={doc.documento_id} className="rounded-lg border border-gray-100 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-semibold text-ink-900">{doc.titulo}</p>
+                    <Badge variant="info">{doc.tipo}</Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-ink-500">
+                    {doc.chunks ?? 0} chunks - {doc.fuente ?? "sin fuente"}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-ink-500">
-                  {doc.chunks ?? 0} chunks - {doc.fuente ?? "sin fuente"}
-                </p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+                {setupMode ? "La auditoria RAG real aparecera aqui al conectar Supabase admin." : "No hay documentos RAG publicos."}
+              </p>
+            )}
           </div>
         </Card>
 

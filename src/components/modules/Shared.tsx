@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import type { SetupIssue } from "@/types/crm";
 
 export function ModuleHeader({
   title,
@@ -41,6 +42,38 @@ export function EmptyBlock({ children }: { children: React.ReactNode }) {
   return (
     <Card className="border-dashed text-center text-sm text-ink-500">
       <div className="py-8">{children}</div>
+    </Card>
+  );
+}
+
+export function SetupNotice({
+  title = "Conecta Supabase admin para ver datos reales",
+  issues = [],
+}: {
+  title?: string;
+  issues?: SetupIssue[];
+}) {
+  return (
+    <Card className="mb-6 rounded-lg border-amber-200 bg-amber-50">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-amber-900">{title}</p>
+          <p className="mt-1 max-w-3xl text-sm text-amber-800">
+            El CRM esta en modo configuracion pendiente. La estructura ya es navegable y cambiara a datos reales al
+            anadir la clave de servidor.
+          </p>
+          {issues.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {issues.map((issue) => (
+                <span key={issue.code} className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
+                  {issue.variable ?? issue.code}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <Badge variant="warning">Setup</Badge>
+      </div>
     </Card>
   );
 }

@@ -5,6 +5,13 @@ export type OrderStatus = "nuevo" | "en_revision" | "pendiente_admin" | "prepara
 export type ActivityDirection = "inbound" | "outbound" | "interno";
 export type RagPublicType = "catalogo" | "faq" | "publicidad";
 export type CriticalImportStatus = "staged" | "approved" | "rejected" | "applied";
+export type DataMode = "live" | "setup";
+
+export interface SetupIssue {
+  code: string;
+  message: string;
+  variable?: string;
+}
 
 export interface Account {
   id: string;
@@ -94,6 +101,8 @@ export interface RagAudit {
   sensitiveRecoverableChunks: number;
   orphanChunks: number;
   privateBotSafeChunks: number;
+  dataMode?: DataMode;
+  setupIssues?: SetupIssue[];
 }
 
 export interface BotSafeKnowledgeMatch {
@@ -130,6 +139,8 @@ export interface CriticalImportBatch {
 }
 
 export interface DashboardSnapshot {
+  dataMode?: DataMode;
+  setupIssues?: SetupIssue[];
   accounts: Account[];
   contacts: Contact[];
   leads: Lead[];

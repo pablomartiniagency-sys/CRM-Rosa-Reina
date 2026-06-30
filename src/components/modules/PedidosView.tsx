@@ -2,13 +2,14 @@
 
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { EmptyBlock, ErrorBlock, LoadingBlock, ModuleHeader, StatusBadge } from "@/components/modules/Shared";
+import { ErrorBlock, LoadingBlock, ModuleHeader, SetupNotice, StatusBadge } from "@/components/modules/Shared";
 import { useCrmOverview } from "@/components/modules/useCrmOverview";
 
 export function PedidosView() {
   const { data, error, loading } = useCrmOverview();
   if (loading) return <LoadingBlock />;
   if (error || !data) return <ErrorBlock message={error ?? "Sin datos"} />;
+  const setupMode = data.dataMode === "setup";
 
   return (
     <section>
@@ -17,6 +18,8 @@ export function PedidosView() {
         title="Pedidos y solicitudes"
         description="Seguimiento interno de referencias, estados y canal origen. Los importes quedan como dato privado y no se usan en respuestas publicas."
       />
+
+      {setupMode ? <SetupNotice issues={data.setupIssues} /> : null}
 
       <Card className="mb-6 rounded-lg border-amber-200 bg-amber-50">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -58,7 +61,9 @@ export function PedidosView() {
             </table>
           </div>
         ) : (
-          <EmptyBlock>Aun no hay pedidos estructurados.</EmptyBlock>
+          <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+            {setupMode ? "Los pedidos reales apareceran aqui al conectar Supabase admin." : "Aun no hay pedidos estructurados."}
+          </p>
         )}
       </Card>
     </section>

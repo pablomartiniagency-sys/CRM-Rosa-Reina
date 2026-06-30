@@ -1,13 +1,14 @@
 "use client";
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
-import { EmptyBlock, ErrorBlock, LoadingBlock, ModuleHeader, StatusBadge } from "@/components/modules/Shared";
+import { ErrorBlock, LoadingBlock, ModuleHeader, SetupNotice, StatusBadge } from "@/components/modules/Shared";
 import { useCrmOverview } from "@/components/modules/useCrmOverview";
 
 export function OportunidadesView() {
   const { data, error, loading } = useCrmOverview();
   if (loading) return <LoadingBlock />;
   if (error || !data) return <ErrorBlock message={error ?? "Sin datos"} />;
+  const setupMode = data.dataMode === "setup";
 
   return (
     <section>
@@ -16,6 +17,7 @@ export function OportunidadesView() {
         title="Oportunidades"
         description="Leads de WhatsApp, email y formularios. Aqui se separa informacion comercial segura de solicitudes que deben pasar a administracion."
       />
+      {setupMode ? <SetupNotice issues={data.setupIssues} /> : null}
       <Card className="rounded-lg">
         <CardHeader>
           <CardTitle>Pipeline reciente</CardTitle>
@@ -36,7 +38,9 @@ export function OportunidadesView() {
             ))}
           </div>
         ) : (
-          <EmptyBlock>No hay oportunidades pendientes.</EmptyBlock>
+          <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+            {setupMode ? "Las oportunidades reales apareceran aqui al conectar Supabase admin." : "No hay oportunidades pendientes."}
+          </p>
         )}
       </Card>
     </section>
