@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env
+.env.local
+n8n_backups/
+*.log
+*.tsbuildinfo
+.DS_Store
+
+# Local Netlify folder
+.netlify

@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+    --primary: 210 55% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 94%;
+    --secondary-foreground: 240 10% 12%;
+    --muted: 240 5% 94%;
+    --muted-foreground: 240 5% 48%;
+    --accent: 210 55% 38%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5% 88%;
+    --input: 240 5% 88%;
+    --ring: 210 55% 38%;
+    --radius: 1rem;
+  }
+  body { @apply bg-background text-ink-900 antialiased; }
+  * { @apply border-border; }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .bg-glow {
+    background: radial-gradient(circle at 80% -10%, rgba(38,97,156,0.06), transparent 50%),
+                radial-gradient(circle at 10% 110%, rgba(38,97,156,0.04), transparent 55%);
+  }
+  .gradient-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(38,97,156,0.4), transparent); }
+  .glass { @apply bg-white/80 border border-gray-200/60 backdrop-blur-xl; }
+  .card { @apply rounded-lg bg-white border border-gray-200/70 shadow-sm shadow-black/[0.02]; }
+  .card-hover { @apply transition-all hover:shadow-md hover:border-lapis-300/50; }
+  .btn-primary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-700 px-4 text-sm font-semibold text-white transition hover:bg-rose-800 disabled:pointer-events-none disabled:opacity-40;
+  }
+  .btn-secondary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-ink-700 transition hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-40;
+  }
+  .input, .textarea {
+    @apply w-full bg-white border border-gray-300 rounded-xl px-3.5 h-10 text-sm text-ink-900 outline-none;
+  }
+  .input:focus, .textarea:focus {
+    @apply border-lapis-400/60 ring-2 ring-lapis-400/15;
+  }
+  .input::placeholder, .textarea::placeholder { color: rgba(0,0,0,0.3); }
+  select.select {
+    @apply w-full bg-white border border-gray-300 rounded-xl px-3.5 h-10 text-sm text-ink-900 outline-none appearance-none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+  select.select:focus {
+    @apply border-lapis-400/60 ring-2 ring-lapis-400/15;
+  }
+  .label { @apply text-[11px] font-bold uppercase tracking-wider text-ink-500; }
+  .eyebrow { @apply text-[10px] font-bold uppercase tracking-[0.18em] text-lapis-500; }
+  .chip { @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border; }
+  .h-display { font-size: clamp(34px, 5vw, 60px); line-height: 1.05; font-weight: 800; letter-spacing: 0; }
+  .text-body { @apply text-ink-600 font-light leading-relaxed; }
+  .wordmark { @apply font-extrabold tracking-tight bg-gradient-to-b from-lapis-500 to-lapis-700 bg-clip-text text-transparent; }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.15); }
+  ::selection { background: rgba(38,97,156,0.15); }
+}
