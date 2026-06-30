@@ -8,3 +8,67 @@ export const env = {
   whatsappAccessToken: process.env.WHATSAPP_ACCESS_TOKEN || "",
   adminEscalationEmail: process.env.ADMIN_ESCALATION_EMAIL || "rosareina.info@gmail.com",
 };
+
+type IntegrationStatus = {
+  ready: boolean;
+  missing: string[];
+  invalid: string[];
+};
+
+function hasUsableValue(value: string | undefined, variableName: string) {
+  const normalized = (value ?? "").trim();
+  if (!normalized) return false;
+  const lower = normalized.toLowerCase();
+  return !(
+    normalized.startsWith("__n8n_BLANK_VALUE") ||
+    normalized === "sk-..." ||
+    lower.includes("tu_") ||
+    lower.includes("_aqui") ||
+    lower.includes("define_un_token") ||
+    lower.includes("phone_number_id_de_meta") ||
+    lower.includes("token_permanente_de_meta") ||
+    lower === variableName.toLowerCase()
+  );
+}
+
+function statusFor(required: Array<[string, string | undefined]>): IntegrationStatus {
+  const missing = required.filter(([, value]) => !(value ?? "").trim()).map(([name]) => name);
+  const invalid = required
+    .filter(([name, value]) => (value ?? "").trim() && !hasUsableValue(value, name))
+    .map(([name]) => name);
+
+  return {
+    ready: missing.length === 0 && invalid.length === 0,
+    missing,
+    invalid,
+  };
+}
+
+export function getIntegrationStatus() {
+  const supabase = statusFor([
+    ["NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
+    ["SUPABASE_SERVICE_ROLE_KEY", env.supabaseServiceRoleKey],
+  ]);
+  const supabasePublic = statusFor([
+    ["NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
+    ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY", env.supabaseAnonKey],
+  ]);
+  const openAi = statusFor([["OPENAI_API_KEY", env.openAiApiKey]]);
+  const whatsapp = statusFor([
+    ["WHATSAPP_VERIFY_TOKEN", env.whatsappVerifyToken],
+    ["WHATSAPP_PHONE_NUMBER_ID", env.whatsappPhoneNumberId],
+    ["WHATSAPP_ACCESS_TOKEN", env.whatsappAccessToken],
+  ]);
+
+  return {
+    supabase,
+    supabasePublic,
+    openAi,
+    whatsapp,
+    readiness: {
+      crmViews: supabase.ready,
+      ragAssistant: supabase.ready && openAi.ready,
+      whatsappWebhook: supabase.ready && openAi.ready && whatsapp.ready,
+    },
+  };
+}

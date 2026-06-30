@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { env } from "@/lib/env";
+import { getIntegrationStatus } from "@/lib/env";
 
 export async function GET() {
+  const integrations = getIntegrationStatus();
+
   return NextResponse.json({
     ok: true,
     app: "crm-rosa-reina",
-    supabaseConfigured: Boolean(env.supabaseUrl && env.supabaseServiceRoleKey),
-    openAiConfigured: Boolean(env.openAiApiKey),
-    whatsappConfigured: Boolean(env.whatsappAccessToken && env.whatsappPhoneNumberId && env.whatsappVerifyToken),
+    supabaseConfigured: integrations.supabase.ready,
+    openAiConfigured: integrations.openAi.ready,
+    whatsappConfigured: integrations.whatsapp.ready,
+    integrations,
   });
 }
