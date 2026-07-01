@@ -18,7 +18,7 @@
 ## WhatsApp real
 
 Enviar desde un numero vinculado a CRM si se quiere validar personalizacion.
-La ultima prueba real uso un telefono no presente en `contacto_metodos`, por eso no cerro el gate de vinculacion.
+El telefono personal de Martin ya esta dado de alta como contacto `Martin Mazzola`; la siguiente prueba debe confirmar vinculacion automatica de actividades nuevas.
 
 | Mensaje | Esperado |
 | --- | --- |

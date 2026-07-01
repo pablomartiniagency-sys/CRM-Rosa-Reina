@@ -133,11 +133,13 @@ Cambios de estado:
 - Ejecucion `717`: success con camino completo de catalogo/RAG.
 - Ejecucion `721`: success con camino de derivacion y `Aviso Administraci?n`.
 - Supabase ya registra outbound WhatsApp real.
-- Sigue pendiente probar desde un telefono que exista en CRM, porque las nuevas actividades no estan vinculadas a contacto/cuenta.
+- El telefono usado en las pruebas se dio de alta como `Martin Mazzola`, metodo `movil`, canal preferido `whatsapp`.
+- Las actividades historicas de ese telefono se re-vincularon a `contacto_id`/`cuenta_id`.
+- Sigue pendiente enviar un mensaje nuevo desde ese telefono para confirmar vinculacion automatica en una ejecucion n8n nueva.
 
 ## Riesgos pendientes
 
-- Personalizacion por telefono: las pruebas reales recientes usaron un telefono no encontrado en `contacto_metodos`, asi que no prueban vinculacion a `contacto_id`/`cuenta_id`.
+- Personalizacion por telefono: el telefono de prueba ya existe en `contacto_metodos`, pero falta una nueva ejecucion real para probar vinculacion automatica sin backfill.
 - Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token. Checklist en `docs/ROTACION_CREDENCIALES_PRODUCCION.md`.
 - La carpeta RAG debe mantenerse curada. Pedidos, tarifas, contratos o documentos internos deben moverse a vault privado, no a RAG publico.
 - Importaciones criticas: el CRM ya crea staging privado y permite aprobar/rechazar el lote. La aplicacion final a pedidos/tarifas/condiciones sigue pendiente y debe hacerse en un bloque separado con mapeo explicito por destino.
@@ -175,7 +177,7 @@ Estado de la ultima auditoria viva:
 - `supabase.rag_sensitive_zero`: pass.
 - `supabase.rag_orphans_zero`: pass.
 - `supabase.phone_methods_present`: pass.
-- `supabase.whatsapp_activity_counts`: 42 WhatsApp, 35 inbound, 7 outbound, 0 vinculadas.
+- `supabase.whatsapp_activity_counts`: 42 WhatsApp, 35 inbound, 7 outbound, 14 vinculadas.
 - `n8n.whatsapp.active`: pass.
 - `n8n.rag_loader.active`: pass.
 - `n8n.whatsapp.trigger_credentials`: pass.
@@ -199,13 +201,9 @@ Estado de la ultima auditoria viva:
 - `n8n.whatsapp.derive_guard`: pass.
 - `n8n.whatsapp.recent_execution_paths`: pass, incluye camino RAG en `717` y derivacion con aviso admin en `721`.
 
-Avisos pendientes:
-
-- `supabase.whatsapp_linkage_missing`: no hay actividades vinculadas a contacto/cuenta todavia porque el telefono probado no existe en `contacto_metodos`.
-
 Condicion para cerrar el gate:
 
-- Enviar prueba real desde WhatsApp usando un telefono dado de alta en CRM.
+- Enviar prueba real desde WhatsApp usando el telefono de Martin ya dado de alta.
 - Ver una ejecucion nueva en n8n con `status=success` y camino completo.
 - Ver actividad inbound y outbound nuevas en Supabase.
-- Si el telefono existe en CRM, ambas deben conservar `contacto_id` y/o `cuenta_id`.
+- Ambas deben conservar `contacto_id` y/o `cuenta_id` sin backfill manual.

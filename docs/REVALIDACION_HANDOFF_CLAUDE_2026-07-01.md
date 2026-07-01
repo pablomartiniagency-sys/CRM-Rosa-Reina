@@ -35,13 +35,16 @@ Supabase despues de las pruebas:
 - WhatsApp total: 42 actividades.
 - Inbound: 35.
 - Outbound: 7.
-- Vinculadas a contacto/cuenta: 0.
+- Vinculadas a contacto/cuenta inicialmente: 0.
+- Despues se dio de alta el telefono personal de Martin como `Martin Mazzola` y se re-vincularon las actividades historicas de prueba.
+- Vinculadas a contacto/cuenta tras alta: 14.
 
 Interpretacion:
 
 - WhatsApp end-to-end general ya tiene evidencia real de entrada, RAG, respuesta y guardado outbound.
 - La derivacion comercial tiene evidencia real de camino n8n con `Aviso Administraci?n`.
-- La personalizacion por telefono sigue sin cerrar porque el telefono probado no existe en `contacto_metodos`; hay que repetir desde un telefono dado de alta en CRM.
+- La personalizacion por telefono queda preparada: el telefono probado ya existe en `contacto_metodos` como `movil`, con canal preferido `whatsapp`.
+- Falta enviar un nuevo mensaje real desde ese telefono para confirmar que n8n vincula automaticamente la nueva actividad sin backfill manual.
 
 ## Email
 
@@ -59,7 +62,7 @@ Estado verificado:
 
 ## Pendiente critico real
 
-1. Probar WhatsApp desde un telefono que exista en CRM.
-2. Confirmar que las nuevas actividades inbound/outbound quedan con `contacto_id` o `cuenta_id`.
+1. Probar WhatsApp de nuevo desde el telefono de Martin ya dado de alta.
+2. Confirmar que las nuevas actividades inbound/outbound quedan con `contacto_id` o `cuenta_id` sin backfill manual.
 3. Rotar credenciales antes de produccion.
 4. Migrar los headers Supabase hardcodeados del workflow de email a credenciales n8n.
