@@ -10,8 +10,12 @@
     "type-check": "tsc --noEmit",
     "audit:critical": "node scripts/audit-critical-whatsapp.mjs",
     "demo:seed": "node scripts/seed-demo-crm.mjs --reset",
+    "demo:seed:small": "node scripts/seed-demo-crm.mjs --reset --count=6",
+    "demo:seed:medium": "node scripts/seed-demo-crm.mjs --reset --count=30",
+    "demo:seed:large": "node scripts/seed-demo-crm.mjs --reset --count=80",
     "demo:clean": "node scripts/seed-demo-crm.mjs --clean",
     "demo:reset": "node scripts/seed-demo-crm.mjs --reset",
+    "demo:status": "node scripts/seed-demo-crm.mjs --status",
     "fresh": "rimraf node_modules package-lock.json .next && npm install"
   },
   "dependencies": {

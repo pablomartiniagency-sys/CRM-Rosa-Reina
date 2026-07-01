@@ -47,12 +47,16 @@ Para rellenar el CRM con datos ficticios y reversibles:
 
 ```bash
 npm run demo:seed
+npm run demo:seed:medium
+npm run demo:seed:large
+npm run demo:seed -- --count=50
 ```
 
 Para borrar solo esos datos demo:
 
 ```bash
 npm run demo:clean
+npm run demo:status
 ```
 
 Los registros demo se marcan con `demo_seed_id = rosa-reina-demo-v1`. Guia completa en `docs/DATOS_DEMO_CRM.md`.
