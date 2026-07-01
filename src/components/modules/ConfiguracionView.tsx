@@ -21,10 +21,14 @@ type HealthPayload = {
   integrations?: {
     supabase: IntegrationStatus;
     supabasePublic: IntegrationStatus;
+    platformVault: IntegrationStatus;
+    identity: IntegrationStatus;
     openAi: IntegrationStatus;
     whatsapp: IntegrationStatus;
     readiness: {
       crmViews: boolean;
+      platformVault: boolean;
+      identityLogin: boolean;
       ragAssistant: boolean;
       whatsappWebhook: boolean;
     };
@@ -32,8 +36,10 @@ type HealthPayload = {
 };
 
 const INTEGRATION_LABELS = {
-  supabasePublic: "Supabase publico",
-  supabase: "Supabase admin",
+  supabasePublic: "Supabase CRM publico",
+  supabase: "Supabase CRM admin",
+  platformVault: "Supabase plataforma/vault",
+  identity: "Identidad Rosa Reina",
   openAi: "OpenAI",
   whatsapp: "WhatsApp API",
 } as const;
@@ -67,7 +73,7 @@ function StatusLine({
     <div className="flex items-start justify-between gap-4 border-b border-gray-100 py-3 last:border-b-0">
       <div>
         <p className="text-sm font-semibold text-ink-900">{label}</p>
-        <p className="mt-1 text-xs text-ink-400">{issues.length ? issues.join(" · ") : "Configuracion valida."}</p>
+        <p className="mt-1 text-xs text-ink-400">{issues.length ? issues.join(" / ") : "Configuracion valida."}</p>
       </div>
       <ReadinessBadge ready={status.ready} />
     </div>
@@ -122,6 +128,8 @@ export function ConfiguracionView() {
             <div>
               <StatusLine label={INTEGRATION_LABELS.supabasePublic} status={integrations?.supabasePublic} />
               <StatusLine label={INTEGRATION_LABELS.supabase} status={integrations?.supabase} />
+              <StatusLine label={INTEGRATION_LABELS.platformVault} status={integrations?.platformVault} />
+              <StatusLine label={INTEGRATION_LABELS.identity} status={integrations?.identity} />
               <StatusLine label={INTEGRATION_LABELS.openAi} status={integrations?.openAi} />
               <StatusLine label={INTEGRATION_LABELS.whatsapp} status={integrations?.whatsapp} />
             </div>
@@ -135,6 +143,7 @@ export function ConfiguracionView() {
           </CardHeader>
           <div className="space-y-3 text-sm text-ink-600">
             <p>1 base Supabase para Rosa Reina; no SaaS multiempresa en esta version.</p>
+            <p>El CRM operativo y el vault de credenciales usan variables separadas.</p>
             <p>WhatsApp y RAG son prioridad. Telegram queda fuera de alcance.</p>
             <p>Datos criticos en tablas privadas con staging y auditoria.</p>
             <p>RAG privado solo llega al bot si esta aprobado como bot_safe.</p>

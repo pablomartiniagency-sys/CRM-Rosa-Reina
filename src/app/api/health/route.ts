@@ -8,6 +8,8 @@ export async function GET() {
     ok: true,
     app: "crm-rosa-reina",
     supabaseConfigured: integrations.supabase.ready,
+    platformVaultConfigured: integrations.platformVault.ready,
+    identityConfigured: integrations.identity.ready,
     openAiConfigured: integrations.openAi.ready,
     whatsappConfigured: integrations.whatsapp.ready,
     integrations,

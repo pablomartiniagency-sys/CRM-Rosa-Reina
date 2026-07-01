@@ -42,18 +42,22 @@ npm run audit:critical
 - `whatsapp_evidence`: hay inbound/outbound WhatsApp vinculados a cliente/contacto.
 - `email_simulation_ready`: hay emails de ejemplo guardados con revision administrativa.
 - `imports_ready`: importaciones criticas tienen staging, aplicacion final y vault privado.
-- `identity_ready`: login real configurado. Este punto sigue pendiente si Rosa Reina debe entrar con su Supabase `zbec...`.
+- `platform_vault_ready`: Supabase `zbec...` esta configurado para credenciales, accesos e identidad interna.
+- `identity_ready`: login real configurado con variables `NEXT_PUBLIC_IDENTITY_SUPABASE_*`.
 
 ## Siguiente orden recomendado
 
 1. Mantener demo media cargada para validar pantallas y conversaciones internas.
-2. Conectar identidad/accesos reales de Rosa Reina.
-3. Auditar y cerrar flujo email n8n: lectura, resumen IA, guardado en `actividades`, adjuntos y aviso de revision.
-4. Crear asistente interno privilegiado solo para usuarios autenticados.
-5. Rotar credenciales al final, antes de produccion.
+2. Conectar plataforma/vault `zbec...` con `PLATFORM_SUPABASE_*` sin tocar `SUPABASE_*`.
+3. Conectar identidad/accesos reales de Rosa Reina.
+4. Auditar y cerrar flujo email n8n: lectura, resumen IA, guardado en `actividades`, adjuntos y aviso de revision.
+5. Crear asistente interno privilegiado solo para usuarios autenticados.
+6. Rotar credenciales al final, antes de produccion.
 
 ## Notas de seguridad
 
 No se ha creado ningun endpoint web para seed/clean porque seria destructivo y requeriria `service_role`. Por ahora esos comandos se ejecutan solo desde CLI local/servidor.
 
 WhatsApp cliente debe seguir limitado a RAG publico, contexto propio y `bot_safe`; la informacion privada completa debe quedar solo para CRM interno autenticado.
+
+La separacion completa de variables esta documentada en `docs/SEGURIDAD_PLATAFORMA_CREDENCIALES.md`.

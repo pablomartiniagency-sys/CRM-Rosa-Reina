@@ -10,6 +10,12 @@ const supabaseUrl = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
 const supabasePublicKey =
   env.SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const platformUrl = env.PLATFORM_SUPABASE_URL || env.CREDENTIALS_SUPABASE_URL || "";
+const platformSecretKey = env.PLATFORM_SUPABASE_SECRET_KEY || env.CREDENTIALS_SUPABASE_SECRET_KEY || "";
+const platformPublishableKey = env.PLATFORM_SUPABASE_PUBLISHABLE_KEY || env.CREDENTIALS_SUPABASE_PUBLISHABLE_KEY || "";
+const identityUrl = env.NEXT_PUBLIC_IDENTITY_SUPABASE_URL || "";
+const identityPublishableKey =
+  env.NEXT_PUBLIC_IDENTITY_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_IDENTITY_SUPABASE_ANON_KEY || "";
 
 const checks = [];
 const notes = [];
@@ -25,15 +31,32 @@ record(
   "WhatsApp local configurado; las pruebas productivas siguen en n8n."
 );
 
-const identityUrl = env.NEXT_PUBLIC_IDENTITY_SUPABASE_URL || "";
+record(
+  "env.platform_vault",
+  usable(platformUrl) && usable(platformSecretKey),
+  "Supabase plataforma/vault configurado para credenciales y accesos.",
+  platformUrl ? { project: projectRefFromUrl(platformUrl), publicKeyConfigured: usable(platformPublishableKey) } : {}
+);
 record(
   "env.identity",
-  usable(identityUrl) && usable(env.NEXT_PUBLIC_IDENTITY_SUPABASE_ANON_KEY),
+  usable(identityUrl) && usable(identityPublishableKey),
   "Identidad/accesos configurados para login real.",
-  identityUrl ? { url: identityUrl } : {}
+  identityUrl ? { project: projectRefFromUrl(identityUrl) } : {}
 );
+
+const dataPlaneProject = projectRefFromUrl(supabaseUrl);
+const platformProject = projectRefFromUrl(platformUrl);
+if (dataPlaneProject === "zbecidvekwtgnxfxdqhq") {
+  notes.push("SUPABASE_URL apunta al vault zbec. Verifica que no hayas cambiado por error el data plane del CRM.");
+}
+if (platformProject && dataPlaneProject && platformProject === dataPlaneProject) {
+  notes.push("El CRM data plane y el platform/vault plane apuntan al mismo proyecto. Solo debe ocurrir si fue una migracion consciente.");
+}
+if (!platformUrl) {
+  notes.push("Platform/vault pendiente: configura PLATFORM_SUPABASE_URL y PLATFORM_SUPABASE_SECRET_KEY con el proyecto zbec.");
+}
 if (!identityUrl) {
-  notes.push("Identidad real pendiente: si Rosa Reina usa zbecidvekwtgnxfxdqhq, configura NEXT_PUBLIC_IDENTITY_SUPABASE_URL y keys de identidad.");
+  notes.push("Identidad real pendiente: configura NEXT_PUBLIC_IDENTITY_SUPABASE_URL y su publishable key del proyecto zbec.");
 }
 
 let summary = {};
@@ -54,6 +77,7 @@ const gates = {
     (summary.whatsapp?.linked ?? 0) > 0,
   email_simulation_ready: (summary.email?.activities ?? 0) > 0 && (summary.email?.reviewAdmin ?? 0) > 0,
   imports_ready: summary.imports?.rowApplicationColumns === true,
+  platform_vault_ready: pass("env.platform_vault"),
   identity_ready: pass("env.identity"),
 };
 
@@ -66,6 +90,7 @@ console.log(
         .filter(([name]) => name !== "identity_ready")
         .every(([, value]) => value),
       project: supabaseUrl ? supabaseUrl.replace(/^https:\/\//, "") : null,
+      platformProject: platformProject || null,
       checks,
       gates,
       summary,
@@ -103,6 +128,11 @@ function record(name, ok, message, detail = {}) {
 
 function pass(name) {
   return checks.some((check) => check.name === name && check.status === "pass");
+}
+
+function projectRefFromUrl(url) {
+  const host = String(url ?? "").trim().replace(/^https?:\/\//, "").split("/")[0];
+  return host.endsWith(".supabase.co") ? host.replace(".supabase.co", "") : "";
 }
 
 async function collectSupabaseStatus() {
@@ -220,6 +250,7 @@ function buildNextActions(gates) {
   if (!gates.whatsapp_evidence) actions.push("Ejecuta una prueba fisica WhatsApp desde n8n y luego npm run audit:critical.");
   if (!gates.email_simulation_ready) actions.push("Completa/audita flujo email n8n: guardar Email, resumen IA y revision_admin.");
   if (!gates.imports_ready) actions.push("Revisa migraciones de importaciones criticas y RPC private audit.");
-  if (!gates.identity_ready) actions.push("Configura identidad real de Rosa Reina; si aplica, usa el proyecto zbecidvekwtgnxfxdqhq.");
+  if (!gates.platform_vault_ready) actions.push("Configura PLATFORM_SUPABASE_* con el proyecto zbec para vault/accesos.");
+  if (!gates.identity_ready) actions.push("Configura identidad real de Rosa Reina con NEXT_PUBLIC_IDENTITY_SUPABASE_*.");
   return actions;
 }

@@ -7,6 +7,18 @@ export const env = {
     "",
   supabaseServiceRoleKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   supabaseJwksUrl: process.env.SUPABASE_JWKS_URL || "",
+  platformSupabaseUrl: process.env.PLATFORM_SUPABASE_URL || process.env.CREDENTIALS_SUPABASE_URL || "",
+  platformSupabasePublishableKey:
+    process.env.PLATFORM_SUPABASE_PUBLISHABLE_KEY || process.env.CREDENTIALS_SUPABASE_PUBLISHABLE_KEY || "",
+  platformSupabaseSecretKey:
+    process.env.PLATFORM_SUPABASE_SECRET_KEY || process.env.CREDENTIALS_SUPABASE_SECRET_KEY || "",
+  platformSupabaseJwksUrl: process.env.PLATFORM_SUPABASE_JWKS_URL || process.env.CREDENTIALS_SUPABASE_JWKS_URL || "",
+  identitySupabaseUrl: process.env.NEXT_PUBLIC_IDENTITY_SUPABASE_URL || "",
+  identitySupabasePublishableKey:
+    process.env.NEXT_PUBLIC_IDENTITY_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_IDENTITY_SUPABASE_ANON_KEY ||
+    "",
+  identitySupabaseServiceRoleKey: process.env.IDENTITY_SUPABASE_SERVICE_ROLE_KEY || "",
   openAiApiKey: process.env.OPENAI_API_KEY || "",
   whatsappVerifyToken: process.env.WHATSAPP_VERIFY_TOKEN || "",
   whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "",
@@ -61,6 +73,17 @@ export function getIntegrationStatus() {
       env.supabaseAnonKey,
     ],
   ]);
+  const platformVault = statusFor([
+    ["PLATFORM_SUPABASE_URL or CREDENTIALS_SUPABASE_URL", env.platformSupabaseUrl],
+    ["PLATFORM_SUPABASE_SECRET_KEY or CREDENTIALS_SUPABASE_SECRET_KEY", env.platformSupabaseSecretKey],
+  ]);
+  const identity = statusFor([
+    ["NEXT_PUBLIC_IDENTITY_SUPABASE_URL", env.identitySupabaseUrl],
+    [
+      "NEXT_PUBLIC_IDENTITY_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_IDENTITY_SUPABASE_ANON_KEY",
+      env.identitySupabasePublishableKey,
+    ],
+  ]);
   const openAi = statusFor([["OPENAI_API_KEY", env.openAiApiKey]]);
   const whatsapp = statusFor([
     ["WHATSAPP_VERIFY_TOKEN", env.whatsappVerifyToken],
@@ -71,10 +94,14 @@ export function getIntegrationStatus() {
   return {
     supabase,
     supabasePublic,
+    platformVault,
+    identity,
     openAi,
     whatsapp,
     readiness: {
       crmViews: supabase.ready,
+      platformVault: platformVault.ready,
+      identityLogin: identity.ready,
       ragAssistant: supabase.ready && openAi.ready,
       whatsappWebhook: supabase.ready && openAi.ready && whatsapp.ready,
     },

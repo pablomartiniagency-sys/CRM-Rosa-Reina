@@ -6,6 +6,7 @@ CRM interno para Rosa Reina, adaptado desde la base tecnica de Nido pero recorta
 
 - Next.js 16 + React 19 para la app interna.
 - Supabase `fgqlgehbtjdwcilyroiq` como data plane administrativo, el mismo proyecto usado por la base Nido.
+- Supabase `zbecidvekwtgnxfxdqhq` como plataforma/vault para credenciales, accesos e identidad interna.
 - El backend del CRM lee datos privilegiados con `SUPABASE_SECRET_KEY` o `SUPABASE_SERVICE_ROLE_KEY`; esa clave va solo en servidor y nunca en el navegador.
 - n8n como automatizacion externa para WhatsApp y loader RAG.
 - RAG publico en `public.documentos` / `public.documento_chunks`.
@@ -22,12 +23,16 @@ CRM interno para Rosa Reina, adaptado desde la base tecnica de Nido pero recorta
 
 Copia `.env.example` a `.env.local` y rellena las claves reales. No guardes tokens reales en Git.
 
-Supabase admite dos familias de variables:
+Supabase queda separado en dos planos:
 
-- Recomendadas actuales: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_JWKS_URL`.
-- Compatibles legacy/publicas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+- CRM/RAG/WhatsApp data plane: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_JWKS_URL`.
+- Plataforma/vault de credenciales y accesos: `PLATFORM_SUPABASE_URL`, `PLATFORM_SUPABASE_PUBLISHABLE_KEY`, `PLATFORM_SUPABASE_SECRET_KEY`, `PLATFORM_SUPABASE_JWKS_URL`.
+- Login real en navegador: `NEXT_PUBLIC_IDENTITY_SUPABASE_URL`, `NEXT_PUBLIC_IDENTITY_SUPABASE_PUBLISHABLE_KEY` o `NEXT_PUBLIC_IDENTITY_SUPABASE_ANON_KEY`.
+- Compatibles legacy/publicas para el CRM: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
 
-`SUPABASE_SECRET_KEY` y `SUPABASE_SERVICE_ROLE_KEY` son solo de servidor. Nunca deben llevar prefijo `NEXT_PUBLIC_`.
+`SUPABASE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `PLATFORM_SUPABASE_SECRET_KEY` e `IDENTITY_SUPABASE_SERVICE_ROLE_KEY` son solo de servidor. Nunca deben llevar prefijo `NEXT_PUBLIC_`.
+
+Guia de seguridad de plataforma en `docs/SEGURIDAD_PLATAFORMA_CREDENCIALES.md`.
 
 ## Comandos
 
