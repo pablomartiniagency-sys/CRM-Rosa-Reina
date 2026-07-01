@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "type-check": "tsc --noEmit",
     "audit:critical": "node scripts/audit-critical-whatsapp.mjs",
+    "crm:status": "node scripts/crm-operational-status.mjs",
     "demo:seed": "node scripts/seed-demo-crm.mjs --reset",
     "demo:seed:small": "node scripts/seed-demo-crm.mjs --reset --count=6",
     "demo:seed:medium": "node scripts/seed-demo-crm.mjs --reset --count=30",

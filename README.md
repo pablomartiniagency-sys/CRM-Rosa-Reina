@@ -36,6 +36,7 @@ npm install
 npm run type-check
 npm run lint
 npm run build
+npm run crm:status
 npm run dev
 ```
 
@@ -60,6 +61,8 @@ npm run demo:status
 ```
 
 Los registros demo se marcan con `demo_seed_id = rosa-reina-demo-v1`. Guia completa en `docs/DATOS_DEMO_CRM.md`.
+
+Estado operativo y siguientes pasos en `docs/OPERATIVA_CRM.md`.
 
 ## Supabase
 
