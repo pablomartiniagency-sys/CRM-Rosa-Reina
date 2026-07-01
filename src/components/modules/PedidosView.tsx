@@ -38,28 +38,51 @@ export function PedidosView() {
           <CardTitle>Pedidos recientes</CardTitle>
         </CardHeader>
         {data.orders.length ? (
-          <div className="overflow-hidden rounded-lg border border-gray-100">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase text-ink-400">
-                <tr>
-                  <th className="px-3 py-2">Referencia</th>
-                  <th className="px-3 py-2">Canal</th>
-                  <th className="px-3 py-2">Estado</th>
-                  <th className="px-3 py-2">Fecha objetivo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
+          <>
+            <div className="space-y-3 md:hidden">
+              {data.orders.map((order) => (
+                <div key={order.id} className="rounded-lg border border-gray-100 p-3">
+                  <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                    <p className="break-words text-sm font-semibold text-ink-900">{order.referencia ?? order.id.slice(0, 8)}</p>
+                    <StatusBadge value={order.estado} />
+                  </div>
+                  <dl className="mt-3 grid gap-2 text-xs">
+                    <div className="grid grid-cols-[96px_1fr] gap-2">
+                      <dt className="font-semibold uppercase text-ink-400">Canal</dt>
+                      <dd className="min-w-0 break-words text-ink-600">{order.canal_origen ?? "-"}</dd>
+                    </div>
+                    <div className="grid grid-cols-[96px_1fr] gap-2">
+                      <dt className="font-semibold uppercase text-ink-400">Fecha</dt>
+                      <dd className="min-w-0 break-words text-ink-600">{order.fecha_objetivo ?? "Sin compromiso publico"}</dd>
+                    </div>
+                  </dl>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden overflow-hidden rounded-lg border border-gray-100 md:block">
+              <table className="w-full table-fixed text-left text-sm">
+                <thead className="bg-gray-50 text-xs uppercase text-ink-400">
+                  <tr>
+                    <th className="w-[30%] px-3 py-2">Referencia</th>
+                    <th className="w-[22%] px-3 py-2">Canal</th>
+                    <th className="w-[22%] px-3 py-2">Estado</th>
+                    <th className="w-[26%] px-3 py-2">Fecha objetivo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
                 {data.orders.map((order) => (
                   <tr key={order.id}>
-                    <td className="px-3 py-3 font-medium text-ink-900">{order.referencia ?? order.id.slice(0, 8)}</td>
-                    <td className="px-3 py-3 text-ink-500">{order.canal_origen ?? "-"}</td>
+                    <td className="break-words px-3 py-3 font-medium text-ink-900">{order.referencia ?? order.id.slice(0, 8)}</td>
+                    <td className="break-words px-3 py-3 text-ink-500">{order.canal_origen ?? "-"}</td>
                     <td className="px-3 py-3"><StatusBadge value={order.estado} /></td>
-                    <td className="px-3 py-3 text-ink-500">{order.fecha_objetivo ?? "Sin compromiso publico"}</td>
+                    <td className="break-words px-3 py-3 text-ink-500">{order.fecha_objetivo ?? "Sin compromiso publico"}</td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
             {setupMode ? "Los pedidos reales apareceran aqui al conectar Supabase admin." : "Aun no hay pedidos estructurados."}

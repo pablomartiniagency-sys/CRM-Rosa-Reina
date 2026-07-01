@@ -40,12 +40,14 @@ export function DashboardView() {
           <div className="space-y-3">
             {data.activities.length ? (
               data.activities.slice(0, 8).map((activity) => (
-                <div key={activity.actividad_id} className="rounded-lg border border-gray-100 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="truncate text-sm font-semibold text-ink-900">{activity.asunto ?? activity.tipo}</p>
-                    <StatusBadge value={activity.ai_urgencia ?? activity.direccion} />
+                <div key={activity.actividad_id} className="min-w-0 rounded-lg border border-gray-100 p-3">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                    <p className="min-w-0 break-words text-sm font-semibold text-ink-900">{activity.asunto ?? activity.tipo}</p>
+                    <span className="shrink-0">
+                      <StatusBadge value={activity.ai_urgencia ?? activity.direccion} />
+                    </span>
                   </div>
-                  <p className="mt-1 line-clamp-2 text-sm text-ink-500">
+                  <p className="mt-1 line-clamp-2 break-words text-sm text-ink-500">
                     {activity.ai_resumen || activity.descripcion}
                   </p>
                 </div>

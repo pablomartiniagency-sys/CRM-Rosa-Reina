@@ -164,13 +164,25 @@ Pendiente:
 
 ## Auditoria reproducible
 
-Comando local:
+Auditoria base de Supabase/RAG:
 
 ```bash
-N8N_API_KEY=... npm run audit:critical
+npm run audit:critical
 ```
 
-Este comando revisa Supabase, RAG, telefonos, workflows n8n, `match_documents_whatsapp`, credenciales presentes en nodos criticos, Phone Number ID, identificacion por telefono, carga de historial, guardado inbound/outbound y ejecuciones recientes sin imprimir credenciales.
+Auditoria viva de n8n desde PowerShell, sin guardar la clave en `.env.local`:
+
+```powershell
+$env:N8N_API_KEY="REEMPLAZAR_API_KEY_N8N"; npm run audit:critical; Remove-Item Env:N8N_API_KEY
+```
+
+Auditoria viva de n8n desde Bash:
+
+```bash
+N8N_API_KEY="REEMPLAZAR_API_KEY_N8N" npm run audit:critical
+```
+
+La auditoria base revisa Supabase, RAG y telefonos. La auditoria viva, si `N8N_API_KEY` existe solo como variable temporal, tambien revisa workflows n8n, `match_documents_whatsapp`, credenciales presentes en nodos criticos, Phone Number ID, identificacion por telefono, carga de historial, guardado inbound/outbound y ejecuciones recientes sin imprimir credenciales.
 
 Estado de la ultima auditoria viva:
 

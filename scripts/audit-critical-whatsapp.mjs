@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 const root = process.cwd();
 const env = loadEnv(path.join(root, ".env.local"));
 const n8nBaseUrl = env.N8N_BASE_URL || "https://partincho.app.n8n.cloud";
-const n8nApiKey = process.env.N8N_API_KEY || env.N8N_API_KEY || "";
+const n8nApiKey = process.env.N8N_API_KEY || "";
 
 const supabaseUrl = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,7 +24,7 @@ await auditSupabase();
 if (n8nApiKey) {
   await auditN8n();
 } else {
-  warn("n8n.credentials", "N8N_API_KEY not provided; skipped live n8n workflow audit");
+  warn("n8n.credentials", "N8N_API_KEY not provided as a temporary environment variable; skipped live n8n workflow audit");
 }
 
 finish();
@@ -169,7 +169,7 @@ async function auditN8n() {
   expect("n8n.rag_loader.uses_rag_ingest", Boolean(ragNodes.get("rag_ingest")), {});
   expect("n8n.rag_loader.openai_embeddings_http", ragNodes.get("Generar Embedding")?.parameters?.url === "https://api.openai.com/v1/embeddings", {});
 
-  const executions = await n8n("/api/v1/executions?workflowId=MrB7ole5rzayU3MI&limit=10");
+  const executions = await n8n("/api/v1/executions?workflowId=MrB7ole5rzayU3MI&limit=25");
   const recentExecutions = (executions.data || []).map((execution) => ({
     id: execution.id,
     status: execution.status,
@@ -182,7 +182,7 @@ async function auditN8n() {
   }
 
   const recentExecutionDetails = [];
-  for (const execution of recentExecutions.slice(0, 10)) {
+  for (const execution of recentExecutions.slice(0, 25)) {
     const detail = await n8n(`/api/v1/executions/${execution.id}?includeData=true`);
     const runData = detail.data?.resultData?.runData || {};
     recentExecutionDetails.push({

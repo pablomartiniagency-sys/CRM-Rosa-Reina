@@ -93,9 +93,9 @@ export function StatusBadge({ value }: { value?: string | null }) {
 export function MetricCard({ label, value, note }: { label: string; value: string | number; note: string }) {
   return (
     <Card className="rounded-lg">
-      <p className="label">{label}</p>
-      <p className="mt-2 text-3xl font-bold tracking-tight text-ink-900">{value}</p>
-      <p className="mt-1 text-xs text-ink-400">{note}</p>
+      <p className="label break-words">{label}</p>
+      <p className="mt-2 break-words text-3xl font-bold tracking-tight text-ink-900">{value}</p>
+      <p className="mt-1 break-words text-xs text-ink-400">{note}</p>
     </Card>
   );
 }

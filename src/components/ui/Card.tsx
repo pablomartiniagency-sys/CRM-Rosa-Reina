@@ -9,16 +9,16 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 export function Card({ children, className, hover, ...props }: CardProps) {
   return (
-    <div className={cn("card p-5", hover && "card-hover", className)} {...props}>
+    <div className={cn("card min-w-0 p-5", hover && "card-hover", className)} {...props}>
       {children}
     </div>
   );
 }
 
 export function CardHeader({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("flex items-center justify-between mb-4", className)}>{children}</div>;
+  return <div className={cn("mb-4 flex min-w-0 flex-wrap items-center justify-between gap-3", className)}>{children}</div>;
 }
 
 export function CardTitle({ children, className }: { children: ReactNode; className?: string }) {
-  return <h3 className={cn("text-sm font-semibold text-ink-900", className)}>{children}</h3>;
+  return <h3 className={cn("min-w-0 break-words text-sm font-semibold text-ink-900", className)}>{children}</h3>;
 }

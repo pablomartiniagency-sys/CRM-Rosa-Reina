@@ -25,34 +25,52 @@ export function ClientesView() {
           <CardHeader>
             <CardTitle>Ultimas cuentas</CardTitle>
           </CardHeader>
-          <div className="overflow-hidden rounded-lg border border-gray-100">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase text-ink-400">
-                <tr>
-                  <th className="px-3 py-2">Centro</th>
-                  <th className="px-3 py-2">Email</th>
-                  <th className="px-3 py-2">Telefono</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {data.accounts.length ? (
-                  data.accounts.map((account) => (
-                    <tr key={account.id}>
-                      <td className="px-3 py-3 font-medium text-ink-900">{account.nombre}</td>
-                      <td className="px-3 py-3 text-ink-500">{account.email ?? "-"}</td>
-                      <td className="px-3 py-3 text-ink-500">{account.telefono ?? "-"}</td>
+          {data.accounts.length ? (
+            <>
+              <div className="space-y-3 md:hidden">
+                {data.accounts.map((account) => (
+                  <div key={account.id} className="rounded-lg border border-gray-100 p-3">
+                    <p className="break-words text-sm font-semibold text-ink-900">{account.nombre}</p>
+                    <dl className="mt-3 grid gap-2 text-xs">
+                      <div className="grid grid-cols-[72px_1fr] gap-2">
+                        <dt className="font-semibold uppercase text-ink-400">Email</dt>
+                        <dd className="min-w-0 break-all text-ink-600">{account.email ?? "-"}</dd>
+                      </div>
+                      <div className="grid grid-cols-[72px_1fr] gap-2">
+                        <dt className="font-semibold uppercase text-ink-400">Telefono</dt>
+                        <dd className="min-w-0 break-all text-ink-600">{account.telefono ?? "-"}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden overflow-hidden rounded-lg border border-gray-100 md:block">
+                <table className="w-full table-fixed text-left text-sm">
+                  <thead className="bg-gray-50 text-xs uppercase text-ink-400">
+                    <tr>
+                      <th className="w-[42%] px-3 py-2">Centro</th>
+                      <th className="w-[36%] px-3 py-2">Email</th>
+                      <th className="w-[22%] px-3 py-2">Telefono</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="px-3 py-6 text-sm text-ink-500" colSpan={3}>
-                      {setupMode ? "Las cuentas reales apareceran aqui al conectar Supabase admin." : "No hay cuentas sincronizadas."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {data.accounts.map((account) => (
+                    <tr key={account.id}>
+                      <td className="break-words px-3 py-3 font-medium text-ink-900">{account.nombre}</td>
+                      <td className="break-all px-3 py-3 text-ink-500">{account.email ?? "-"}</td>
+                      <td className="break-all px-3 py-3 text-ink-500">{account.telefono ?? "-"}</td>
+                    </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <p className="rounded-lg border border-dashed border-gray-200 p-4 text-sm text-ink-500">
+              {setupMode ? "Las cuentas reales apareceran aqui al conectar Supabase admin." : "No hay cuentas sincronizadas."}
+            </p>
+          )}
         </Card>
 
         <Card className="rounded-lg">
@@ -62,10 +80,10 @@ export function ClientesView() {
           {data.contacts.length ? (
             <div className="space-y-3">
               {data.contacts.map((contact) => (
-                <div key={contact.id} className="rounded-lg border border-gray-100 p-3">
-                  <p className="font-semibold text-ink-900">{contact.nombre_completo}</p>
-                  <p className="text-sm text-ink-500">{contact.rol ?? "Contacto"} - {contact.canal_preferido ?? "whatsapp"}</p>
-                  <p className="mt-1 text-xs text-ink-400">{contact.email ?? contact.telefono ?? "Sin metodo visible"}</p>
+                <div key={contact.id} className="min-w-0 rounded-lg border border-gray-100 p-3">
+                  <p className="break-words font-semibold text-ink-900">{contact.nombre_completo}</p>
+                  <p className="break-words text-sm text-ink-500">{contact.rol ?? "Contacto"} - {contact.canal_preferido ?? "whatsapp"}</p>
+                  <p className="mt-1 break-all text-xs text-ink-400">{contact.email ?? contact.telefono ?? "Sin metodo visible"}</p>
                 </div>
               ))}
             </div>

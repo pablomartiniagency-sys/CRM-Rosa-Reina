@@ -49,7 +49,7 @@ Referencia oficial: https://developers.facebook.com/documentation/business-messa
 
 - Crear una API key nueva en `Settings > n8n API`.
 - Usarla solo para auditorias y tareas administrativas.
-- Actualizar cualquier entorno local que ejecute `npm run audit:critical`.
+- Cargarla solo como variable temporal cuando se ejecute `npm run audit:critical`; no guardarla en `.env.local`.
 - Borrar la API key anterior desde n8n.
 
 Referencia oficial: https://docs.n8n.io/connect/n8n-api/authentication/
@@ -61,7 +61,8 @@ Antes de produccion debe cumplirse:
 - `npm run type-check`
 - `npm run lint`
 - `npm run build`
-- `npm run audit:critical` con la API key nueva de n8n
+- `npm run audit:critical` base
+- `N8N_API_KEY` temporal + `npm run audit:critical` para auditoria viva de n8n
 - Prueba fisica de WhatsApp con ejecucion n8n en `success`
 - Supabase mantiene RAG con `0` sensibles recuperables y `0` huerfanos
 - No queda ninguna credencial antigua activa

@@ -55,12 +55,14 @@ export function RagView() {
           <div className="space-y-3">
             {audit.liveDocuments.length ? (
               audit.liveDocuments.map((doc) => (
-                <div key={doc.documento_id} className="rounded-lg border border-gray-100 p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="font-semibold text-ink-900">{doc.titulo}</p>
-                    <Badge variant="info">{doc.tipo}</Badge>
+                <div key={doc.documento_id} className="min-w-0 rounded-lg border border-gray-100 p-3">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                    <p className="min-w-0 break-words font-semibold text-ink-900">{doc.titulo}</p>
+                    <span className="shrink-0">
+                      <Badge variant="info">{doc.tipo}</Badge>
+                    </span>
                   </div>
-                  <p className="mt-1 text-sm text-ink-500">
+                  <p className="mt-1 break-words text-sm text-ink-500">
                     {doc.chunks ?? 0} chunks - {doc.fuente ?? "sin fuente"}
                   </p>
                 </div>
