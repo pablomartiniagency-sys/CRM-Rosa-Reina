@@ -139,13 +139,34 @@ async function fetchRagDocuments(client: Supabase): Promise<RagDocument[]> {
   const documents = (docs ?? []) as RagDocument[];
   return Promise.all(
     documents.map(async (doc) => {
-      const { count } = await client
-        .from("documento_chunks")
-        .select("*", { count: "exact", head: true })
-        .eq("documento_id", doc.documento_id);
-      return { ...doc, chunks: count ?? 0 };
+      const [chunkCount, embeddingSample] = await Promise.all([
+        client
+          .from("documento_chunks")
+          .select("*", { count: "exact", head: true })
+          .eq("documento_id", doc.documento_id),
+        client
+          .from("documento_chunks")
+          .select("embedding")
+          .eq("documento_id", doc.documento_id)
+          .not("embedding", "is", null)
+          .limit(1),
+      ]);
+      const sample = embeddingSample.data?.[0] as { embedding?: unknown } | undefined;
+      return {
+        ...doc,
+        chunks: chunkCount.count ?? 0,
+        dims: getVectorDimension(sample?.embedding),
+      };
     })
   );
+}
+
+function getVectorDimension(value: unknown): number | null {
+  if (Array.isArray(value)) return value.length;
+  if (typeof value !== "string") return null;
+  const vector = value.trim().replace(/^\[/, "").replace(/\]$/, "");
+  if (!vector) return null;
+  return vector.split(",").filter(Boolean).length;
 }
 
 export async function fetchDashboardSnapshot(): Promise<DashboardSnapshot> {

@@ -1,7 +1,12 @@
 export const env = {
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+  supabaseUrl: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  supabaseAnonKey:
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    "",
+  supabaseServiceRoleKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+  supabaseJwksUrl: process.env.SUPABASE_JWKS_URL || "",
   openAiApiKey: process.env.OPENAI_API_KEY || "",
   whatsappVerifyToken: process.env.WHATSAPP_VERIFY_TOKEN || "",
   whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "",
@@ -46,12 +51,15 @@ function statusFor(required: Array<[string, string | undefined]>): IntegrationSt
 
 export function getIntegrationStatus() {
   const supabase = statusFor([
-    ["NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
-    ["SUPABASE_SERVICE_ROLE_KEY", env.supabaseServiceRoleKey],
+    ["SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
+    ["SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY", env.supabaseServiceRoleKey],
   ]);
   const supabasePublic = statusFor([
-    ["NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
-    ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY", env.supabaseAnonKey],
+    ["SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL", env.supabaseUrl],
+    [
+      "SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      env.supabaseAnonKey,
+    ],
   ]);
   const openAi = statusFor([["OPENAI_API_KEY", env.openAiApiKey]]);
   const whatsapp = statusFor([

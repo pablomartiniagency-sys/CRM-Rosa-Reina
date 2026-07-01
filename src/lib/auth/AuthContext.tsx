@@ -25,6 +25,22 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => undefined,
 });
 
+const LOCAL_AUTH_STORAGE_KEY = "rosa-reina-local-admin";
+
+function isLocalAuthEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
+function createLocalAdminUser(email = "admin@test.com"): AuthUser {
+  return {
+    id: "local-admin",
+    email,
+    role: "owner",
+    name: "Rosa Reina Admin",
+    isMaster: true,
+  };
+}
+
 export function useAuth() {
   return useContext(AuthContext);
 }
@@ -105,6 +121,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      if (typeof window !== "undefined" && isLocalAuthEnabled()) {
+        const localSession = window.localStorage.getItem(LOCAL_AUTH_STORAGE_KEY);
+        if (localSession) {
+          if (active) {
+            setUser(createLocalAdminUser());
+            setLoading(false);
+          }
+          return;
+        }
+      }
+
       if (active) setLoading(false);
     }
 
@@ -116,14 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      if (email === "admin@test.com" && password === "admin") {
-        setUser({
-          id: "local-admin",
-          email,
-          role: "owner",
-          name: "Rosa Reina Admin",
-          isMaster: true,
-        });
+      if (isLocalAuthEnabled() && email === "admin@test.com" && password === "admin") {
+        const localUser = createLocalAdminUser(email);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(LOCAL_AUTH_STORAGE_KEY, "1");
+        }
+        setUser(localUser);
         return { success: true };
       }
 
@@ -156,6 +181,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(LOCAL_AUTH_STORAGE_KEY);
+    }
     const identity = createIdentityClient();
     if (identity) await identity.auth.signOut();
     setUser(null);
