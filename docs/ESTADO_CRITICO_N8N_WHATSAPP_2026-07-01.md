@@ -184,16 +184,17 @@ Auditoria viva de n8n desde Bash:
 N8N_API_KEY="REEMPLAZAR_API_KEY_N8N" npm run audit:critical
 ```
 
-La auditoria base revisa Supabase, RAG y telefonos. La auditoria viva, si `N8N_API_KEY` existe solo como variable temporal, tambien revisa workflows n8n, `match_documents_whatsapp`, credenciales presentes en nodos criticos, Phone Number ID, identificacion por telefono, carga de historial, guardado inbound/outbound y ejecuciones recientes sin imprimir credenciales.
+La auditoria base revisa Supabase, RAG y telefonos. La auditoria viva, si `N8N_API_KEY` existe solo como variable temporal, tambien revisa workflows n8n, `match_documents_whatsapp`, credenciales presentes en nodos criticos, Phone Number ID, identificacion por telefono, carga de historial, guardado inbound/outbound, workflow de email y ejecuciones recientes sin imprimir credenciales.
 
-Estado de la ultima auditoria viva:
+Estado de la ultima auditoria viva despues de conectar vault/identidad y parchear email:
 
 - `supabase.rag_sensitive_zero`: pass.
 - `supabase.rag_orphans_zero`: pass.
 - `supabase.phone_methods_present`: pass.
-- `supabase.whatsapp_activity_counts`: 44 WhatsApp, 36 inbound, 8 outbound, 16 vinculadas.
+- `supabase.whatsapp_activity_counts`: 104 WhatsApp, 66 inbound, 38 outbound, 106 vinculadas.
 - `n8n.whatsapp.active`: pass.
 - `n8n.rag_loader.active`: pass.
+- `n8n.email.active`: pass.
 - `n8n.whatsapp.trigger_credentials`: pass.
 - `n8n.whatsapp.identify_postgres_credentials`: pass.
 - `n8n.whatsapp.identify_phone_lookup`: pass.
@@ -214,8 +215,15 @@ Estado de la ultima auditoria viva:
 - `n8n.whatsapp.channel_raw_phone`: pass.
 - `n8n.whatsapp.derive_guard`: pass.
 - `n8n.whatsapp.recent_execution_paths`: pass, incluye camino RAG en `717` y derivacion con aviso admin en `721`.
+- `n8n.email.rag_pedido_supabase_credentials`: pass.
+- `n8n.email.rag_consulta_supabase_credentials`: pass.
+- `n8n.email.rag_pedido_no_hardcoded_headers`: pass.
+- `n8n.email.rag_consulta_no_hardcoded_headers`: pass.
+- `n8n.email.embedding_pedido_credentials`: pass.
+- `n8n.email.interaction_nodes_postgres_credentials`: pass, 5/5 nodos de interaccion con Postgres.
 
 Gate de personalizacion por telefono:
 
 - Cerrado para Supabase/CRM: mensaje nuevo de Martin genero inbound y outbound vinculados sin backfill manual.
-- Pendiente operativo menor: ejecutar `npm run audit:critical` con `N8N_API_KEY` cargada si se quiere cruzar tambien la ejecucion viva de n8n desde el script.
+- Cerrado para auditoria viva: `npm run audit:critical` con `N8N_API_KEY` temporal cruza WhatsApp, RAG loader y email.
+- Pendiente fisico: ejecutar una nueva prueba WhatsApp y una prueba email real despues de cualquier cambio de credenciales.

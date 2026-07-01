@@ -116,12 +116,15 @@ async function countRows(table, applyFilter) {
 async function auditN8n() {
   const whatsapp = await n8n(`/api/v1/workflows/MrB7ole5rzayU3MI`);
   const ragLoader = await n8n(`/api/v1/workflows/W86DZM3VpnIwuIJU`);
+  const emailWorkflow = await n8n(`/api/v1/workflows/c9ec562enurcX8Ms`);
 
   expect("n8n.whatsapp.active", whatsapp.active === true, { active: whatsapp.active });
   expect("n8n.rag_loader.active", ragLoader.active === true, { active: ragLoader.active });
+  expect("n8n.email.active", emailWorkflow.active === true, { active: emailWorkflow.active });
 
   const whatsappNodes = new Map(whatsapp.nodes.map((node) => [node.name, node]));
   const ragNodes = new Map(ragLoader.nodes.map((node) => [node.name, node]));
+  const emailNodes = new Map(emailWorkflow.nodes.map((node) => [node.name, node]));
 
   const ragNode = whatsappNodes.get("RAG Catalogo");
   const triggerNode = whatsappNodes.get("WhatsApp Trigger");
@@ -195,6 +198,8 @@ async function auditN8n() {
   expect("n8n.rag_loader.uses_rag_ingest", Boolean(ragNodes.get("rag_ingest")), {});
   expect("n8n.rag_loader.openai_embeddings_http", ragNodes.get("Generar Embedding")?.parameters?.url === "https://api.openai.com/v1/embeddings", {});
 
+  auditEmailWorkflow(emailWorkflow, emailNodes);
+
   const executions = await n8n("/api/v1/executions?workflowId=MrB7ole5rzayU3MI&limit=25");
   const recentExecutions = (executions.data || []).map((execution) => ({
     id: execution.id,
@@ -231,6 +236,35 @@ async function auditN8n() {
   if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasAdminNotice)) {
     warn("n8n.whatsapp.no_recent_derivation_path", "No recent successful WhatsApp derivation email path found");
   }
+}
+
+function auditEmailWorkflow(emailWorkflow, emailNodes) {
+  const gmailTrigger = emailNodes.get("Gmail Trigger");
+  const urgentNotice = emailNodes.get("Notificar Urgencia Alta");
+  const pedidoRag = [...emailWorkflow.nodes].find((node) => node.name.includes("Contexto Pedido1"));
+  const consultaRag = [...emailWorkflow.nodes].find((node) => node.name.includes("Contexto Consulta1"));
+  const embeddingPedido = emailNodes.get("Embedding Pedido");
+  const interactionNodes = [...emailWorkflow.nodes].filter((node) => node.name.startsWith("Guardar Interaction"));
+  const postgresInteractionNodes = interactionNodes.filter((node) => Boolean(node.credentials?.postgres));
+
+  expect("n8n.email.gmail_trigger_credentials", Boolean(gmailTrigger?.credentials), {});
+  expect("n8n.email.openai_pedido_credentials", Boolean(emailNodes.get("OpenAI Pedido")?.credentials?.openAiApi), {});
+  expect("n8n.email.openai_consulta_credentials", Boolean(emailNodes.get("OpenAI Consulta")?.credentials?.openAiApi), {});
+  expect("n8n.email.embedding_pedido_credentials", Boolean(embeddingPedido?.credentials?.openAiApi), {});
+  expect("n8n.email.rag_pedido_supabase_credentials", Boolean(pedidoRag?.credentials?.supabaseApi), {});
+  expect("n8n.email.rag_consulta_supabase_credentials", Boolean(consultaRag?.credentials?.supabaseApi), {});
+  expect("n8n.email.rag_pedido_no_hardcoded_headers", !hasHardcodedSupabaseHeader(pedidoRag), {});
+  expect("n8n.email.rag_consulta_no_hardcoded_headers", !hasHardcodedSupabaseHeader(consultaRag), {});
+  expect("n8n.email.interaction_nodes_postgres_credentials", interactionNodes.length >= 4 && postgresInteractionNodes.length === interactionNodes.length, {
+    interactionNodes: interactionNodes.length,
+    withPostgresCredentials: postgresInteractionNodes.length,
+  });
+  expect("n8n.email.urgent_notice_credentials", Boolean(urgentNotice?.credentials), {});
+}
+
+function hasHardcodedSupabaseHeader(node) {
+  const parameters = JSON.stringify(node?.parameters ?? {});
+  return /"apikey"|"Authorization"|Bearer\s+|sb_secret_|service_role/i.test(parameters);
 }
 
 async function n8n(pathname) {
