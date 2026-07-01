@@ -113,3 +113,13 @@ Enviar desde un numero que exista en CRM:
 - Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token.
 - La carpeta RAG debe mantenerse curada. Pedidos, tarifas, contratos o documentos internos deben moverse a vault privado, no a RAG publico.
 - Importaciones criticas siguen como siguiente bloque: staging + revision humana + aprobacion antes de tocar tablas finales.
+
+## Auditoria reproducible
+
+Comando local:
+
+```bash
+N8N_API_KEY=... npm run audit:critical
+```
+
+Este comando revisa Supabase, RAG, telefonos, workflows n8n, `match_documents_whatsapp`, guardado inbound/outbound y ejecuciones recientes sin imprimir credenciales.

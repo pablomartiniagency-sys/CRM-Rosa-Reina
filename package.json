@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "type-check": "tsc --noEmit",
+    "audit:critical": "node scripts/audit-critical-whatsapp.mjs",
     "fresh": "rimraf node_modules package-lock.json .next && npm install"
   },
   "dependencies": {
