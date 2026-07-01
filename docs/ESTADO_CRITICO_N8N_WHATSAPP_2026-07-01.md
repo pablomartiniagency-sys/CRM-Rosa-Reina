@@ -135,11 +135,11 @@ Cambios de estado:
 - Supabase ya registra outbound WhatsApp real.
 - El telefono usado en las pruebas se dio de alta como `Martin Mazzola`, metodo `movil`, canal preferido `whatsapp`.
 - Las actividades historicas de ese telefono se re-vincularon a `contacto_id`/`cuenta_id`.
-- Sigue pendiente enviar un mensaje nuevo desde ese telefono para confirmar vinculacion automatica en una ejecucion n8n nueva.
+- Prueba nueva desde ese telefono confirmada: inbound y outbound se vincularon automaticamente a `contacto_id`/`cuenta_id`.
+- La respuesta uso historial personalizado: el agente recordo el tema anterior tratado por WhatsApp.
 
 ## Riesgos pendientes
 
-- Personalizacion por telefono: el telefono de prueba ya existe en `contacto_metodos`, pero falta una nueva ejecucion real para probar vinculacion automatica sin backfill.
 - Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token. Checklist en `docs/ROTACION_CREDENCIALES_PRODUCCION.md`.
 - La carpeta RAG debe mantenerse curada. Pedidos, tarifas, contratos o documentos internos deben moverse a vault privado, no a RAG publico.
 - Importaciones criticas: el CRM ya crea staging privado y permite aprobar/rechazar el lote. La aplicacion final a pedidos/tarifas/condiciones sigue pendiente y debe hacerse en un bloque separado con mapeo explicito por destino.
@@ -177,7 +177,7 @@ Estado de la ultima auditoria viva:
 - `supabase.rag_sensitive_zero`: pass.
 - `supabase.rag_orphans_zero`: pass.
 - `supabase.phone_methods_present`: pass.
-- `supabase.whatsapp_activity_counts`: 42 WhatsApp, 35 inbound, 7 outbound, 14 vinculadas.
+- `supabase.whatsapp_activity_counts`: 44 WhatsApp, 36 inbound, 8 outbound, 16 vinculadas.
 - `n8n.whatsapp.active`: pass.
 - `n8n.rag_loader.active`: pass.
 - `n8n.whatsapp.trigger_credentials`: pass.
@@ -201,9 +201,7 @@ Estado de la ultima auditoria viva:
 - `n8n.whatsapp.derive_guard`: pass.
 - `n8n.whatsapp.recent_execution_paths`: pass, incluye camino RAG en `717` y derivacion con aviso admin en `721`.
 
-Condicion para cerrar el gate:
+Gate de personalizacion por telefono:
 
-- Enviar prueba real desde WhatsApp usando el telefono de Martin ya dado de alta.
-- Ver una ejecucion nueva en n8n con `status=success` y camino completo.
-- Ver actividad inbound y outbound nuevas en Supabase.
-- Ambas deben conservar `contacto_id` y/o `cuenta_id` sin backfill manual.
+- Cerrado para Supabase/CRM: mensaje nuevo de Martin genero inbound y outbound vinculados sin backfill manual.
+- Pendiente operativo menor: ejecutar `npm run audit:critical` con `N8N_API_KEY` cargada si se quiere cruzar tambien la ejecucion viva de n8n desde el script.
