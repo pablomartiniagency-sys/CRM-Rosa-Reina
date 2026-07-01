@@ -41,6 +41,22 @@ npm run dev
 
 Login local de desarrollo: `admin@test.com` / `admin`.
 
+## Datos demo
+
+Para rellenar el CRM con datos ficticios y reversibles:
+
+```bash
+npm run demo:seed
+```
+
+Para borrar solo esos datos demo:
+
+```bash
+npm run demo:clean
+```
+
+Los registros demo se marcan con `demo_seed_id = rosa-reina-demo-v1`. Guia completa en `docs/DATOS_DEMO_CRM.md`.
+
 ## Supabase
 
 La migracion aplicada crea:

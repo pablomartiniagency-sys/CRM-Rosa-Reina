@@ -9,6 +9,9 @@
     "lint": "eslint . --max-warnings=0",
     "type-check": "tsc --noEmit",
     "audit:critical": "node scripts/audit-critical-whatsapp.mjs",
+    "demo:seed": "node scripts/seed-demo-crm.mjs --reset",
+    "demo:clean": "node scripts/seed-demo-crm.mjs --clean",
+    "demo:reset": "node scripts/seed-demo-crm.mjs --reset",
     "fresh": "rimraf node_modules package-lock.json .next && npm install"
   },
   "dependencies": {
