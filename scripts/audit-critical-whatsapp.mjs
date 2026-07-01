@@ -68,6 +68,12 @@ async function auditSupabase() {
 
   expect("supabase.phone_methods_present", phoneMethods > 0, { phoneMethods });
   note("supabase.whatsapp_activity_counts", { whatsappActivities, whatsappInbound, whatsappOutbound, linkedActivities });
+  if (whatsappOutbound === 0) {
+    warn("supabase.whatsapp_outbound_missing", "No outbound WhatsApp activities yet; run a physical n8n WhatsApp test");
+  }
+  if (linkedActivities === 0) {
+    warn("supabase.whatsapp_linkage_missing", "No linked CRM activities yet; personalization evidence needs a physical WhatsApp test");
+  }
 }
 
 async function countRows(table, applyFilter) {
@@ -92,6 +98,29 @@ async function auditN8n() {
   const ragNodes = new Map(ragLoader.nodes.map((node) => [node.name, node]));
 
   const ragNode = whatsappNodes.get("RAG Catalogo");
+  const triggerNode = whatsappNodes.get("WhatsApp Trigger");
+  const identifyNode = whatsappNodes.get("Identificar Cliente");
+  const openAiChatNode = whatsappNodes.get("OpenAI Chat Model");
+  const openAiEmbeddingsNode = whatsappNodes.get("Embeddings OpenAI");
+  const sendWhatsappNode = whatsappNodes.get("Enviar WhatsApp");
+  const identifyQuery = identifyNode?.parameters?.query || "";
+
+  expect("n8n.whatsapp.trigger_credentials", Boolean(triggerNode?.credentials), {});
+  expect("n8n.whatsapp.identify_postgres_credentials", Boolean(identifyNode?.credentials), {});
+  expect("n8n.whatsapp.identify_phone_lookup", /contacto_metodos/.test(identifyQuery) && /valor_norm/.test(identifyQuery), {});
+  expect("n8n.whatsapp.identify_history_lookup", /public\.actividades/.test(identifyQuery) && /historial_reciente/.test(identifyQuery), {});
+  expect("n8n.whatsapp.openai_chat_credentials", Boolean(openAiChatNode?.credentials), {});
+  expect("n8n.whatsapp.openai_embeddings_credentials", Boolean(openAiEmbeddingsNode?.credentials), {});
+  expect("n8n.whatsapp.supabase_vector_credentials", Boolean(ragNode?.credentials), {});
+  expect("n8n.whatsapp.send_credentials", Boolean(sendWhatsappNode?.credentials), {});
+  if (env.WHATSAPP_PHONE_NUMBER_ID) {
+    expect("n8n.whatsapp.phone_number_id_matches_env", sendWhatsappNode?.parameters?.phoneNumberId === env.WHATSAPP_PHONE_NUMBER_ID, {
+      configured: sendWhatsappNode?.parameters?.phoneNumberId,
+    });
+  } else {
+    warn("n8n.whatsapp.phone_number_id_env", "WHATSAPP_PHONE_NUMBER_ID not provided; skipped phone id comparison");
+  }
+
   expect("n8n.whatsapp.rag_rpc", ragNode?.parameters?.options?.queryName === "match_documents_whatsapp", {
     queryName: ragNode?.parameters?.options?.queryName,
   });
@@ -102,6 +131,8 @@ async function auditN8n() {
   const salidaQuery = salida?.parameters?.query || "";
 
   expect("n8n.whatsapp.guardar_entrada_present", Boolean(entrada), {});
+  expect("n8n.whatsapp.guardar_entrada_credentials", Boolean(entrada?.credentials), {});
+  expect("n8n.whatsapp.guardar_salida_credentials", Boolean(salida?.credentials), {});
   expect("n8n.whatsapp.inbound_before_agent", whatsapp.connections?.["Guardar Entrada"]?.main?.[0]?.[0]?.node === "AI Agent", {
     connection: whatsapp.connections?.["Guardar Entrada"],
   });
@@ -121,15 +152,16 @@ async function auditN8n() {
   expect("n8n.rag_loader.openai_embeddings_http", ragNodes.get("Generar Embedding")?.parameters?.url === "https://api.openai.com/v1/embeddings", {});
 
   const executions = await n8n("/api/v1/executions?workflowId=MrB7ole5rzayU3MI&limit=3");
-  note(
-    "n8n.whatsapp.recent_executions",
-    (executions.data || []).map((execution) => ({
-      id: execution.id,
-      status: execution.status,
-      startedAt: execution.startedAt,
-      stoppedAt: execution.stoppedAt,
-    }))
-  );
+  const recentExecutions = (executions.data || []).map((execution) => ({
+    id: execution.id,
+    status: execution.status,
+    startedAt: execution.startedAt,
+    stoppedAt: execution.stoppedAt,
+  }));
+  note("n8n.whatsapp.recent_executions", recentExecutions);
+  if (recentExecutions[0]?.status !== "success") {
+    warn("n8n.whatsapp.latest_execution_not_success", "Latest WhatsApp execution is not success; run a new physical WhatsApp test");
+  }
 }
 
 async function n8n(pathname) {

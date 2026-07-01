@@ -156,4 +156,40 @@ Comando local:
 N8N_API_KEY=... npm run audit:critical
 ```
 
-Este comando revisa Supabase, RAG, telefonos, workflows n8n, `match_documents_whatsapp`, guardado inbound/outbound y ejecuciones recientes sin imprimir credenciales.
+Este comando revisa Supabase, RAG, telefonos, workflows n8n, `match_documents_whatsapp`, credenciales presentes en nodos criticos, Phone Number ID, identificacion por telefono, carga de historial, guardado inbound/outbound y ejecuciones recientes sin imprimir credenciales.
+
+Estado de la ultima auditoria viva:
+
+- `supabase.rag_sensitive_zero`: pass.
+- `supabase.rag_orphans_zero`: pass.
+- `supabase.phone_methods_present`: pass.
+- `n8n.whatsapp.active`: pass.
+- `n8n.rag_loader.active`: pass.
+- `n8n.whatsapp.trigger_credentials`: pass.
+- `n8n.whatsapp.identify_postgres_credentials`: pass.
+- `n8n.whatsapp.identify_phone_lookup`: pass.
+- `n8n.whatsapp.identify_history_lookup`: pass.
+- `n8n.whatsapp.openai_chat_credentials`: pass.
+- `n8n.whatsapp.openai_embeddings_credentials`: pass.
+- `n8n.whatsapp.supabase_vector_credentials`: pass.
+- `n8n.whatsapp.send_credentials`: pass.
+- `n8n.whatsapp.phone_number_id_matches_env`: pass.
+- `n8n.whatsapp.rag_rpc`: pass, `match_documents_whatsapp`.
+- `n8n.whatsapp.inbound_before_agent`: pass.
+- `n8n.whatsapp.inbound_always_outputs`: pass.
+- `n8n.whatsapp.outbound_saved`: pass.
+- `n8n.whatsapp.channel_raw_phone`: pass.
+- `n8n.whatsapp.derive_guard`: pass.
+
+Avisos esperados hasta hacer prueba fisica:
+
+- `supabase.whatsapp_outbound_missing`: no hay outbound WhatsApp real guardado todavia.
+- `supabase.whatsapp_linkage_missing`: no hay actividades vinculadas a contacto/cuenta todavia.
+- `n8n.whatsapp.latest_execution_not_success`: la ultima ejecucion registrada sigue siendo la antigua `699`, `crashed`.
+
+Condicion para cerrar el gate:
+
+- Enviar prueba real desde WhatsApp.
+- Ver una ejecucion nueva en n8n con `status=success`.
+- Ver al menos una actividad inbound y una outbound nuevas en Supabase.
+- Si el telefono existe en CRM, ambas deben conservar `contacto_id` y/o `cuenta_id`.
