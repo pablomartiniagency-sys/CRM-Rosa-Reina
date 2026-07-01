@@ -38,6 +38,7 @@ Se aplico parche en n8n:
 - El nodo existente `Guardar Interaccion` queda despues de `Enviar WhatsApp` y ahora inserta `actividades.direccion = outbound`.
 - El outbound usa `message_id_externo = <message_id>:reply`.
 - Ambos inserts conservan `contacto_id` y `cuenta_id` si la identificacion los resuelve.
+- Las nuevas actividades guardan el telefono real entrante en `channel_raw`, no el literal `whatsapp`.
 
 Backup local del workflow creado en `n8n_backups/` antes de modificar.
 
@@ -70,8 +71,10 @@ Actividades antes del parche:
 - WhatsApp: 28.
 - WhatsApp inbound: 28.
 - WhatsApp outbound: 0.
+- Actividades con `contacto_id` o `cuenta_id`: 0.
 
 Esto confirma que la correccion de outbound era necesaria.
+Tambien implica que el historial personalizado util empezara a acumularse con las nuevas ejecuciones WhatsApp, porque las actividades antiguas no estan vinculadas a contactos/cuentas.
 
 ## Regla `[DERIVAR]`
 
