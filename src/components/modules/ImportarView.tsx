@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ModuleHeader, StatusBadge } from "@/components/modules/Shared";
-import type { CriticalImportBatch, CriticalImportRow, CriticalImportStatus } from "@/types/crm";
+import type { CriticalImportApplyResult, CriticalImportBatch, CriticalImportRow, CriticalImportStatus } from "@/types/crm";
 
 type ImportResponse = {
   batch?: CriticalImportBatch;
@@ -15,6 +15,7 @@ type ImportResponse = {
 type ReviewResponse = {
   batch?: CriticalImportBatch;
   status?: CriticalImportStatus;
+  applyResult?: CriticalImportApplyResult;
   error?: string;
 };
 
@@ -24,7 +25,8 @@ export function ImportarView() {
   const [batch, setBatch] = useState<CriticalImportBatch | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [reviewLoading, setReviewLoading] = useState<"approve" | "reject" | null>(null);
+  const [reviewLoading, setReviewLoading] = useState<"approve" | "reject" | "apply" | null>(null);
+  const [applyResult, setApplyResult] = useState<CriticalImportApplyResult | null>(null);
 
   const highSensitivity = useMemo(() => rows.filter((row) => row.sensitivity === "high").length, [rows]);
 
@@ -45,16 +47,17 @@ export function ImportarView() {
     }
     setRows(body.rows ?? []);
     setBatch(body.batch ?? null);
+    setApplyResult(null);
   }
 
-  async function review(action: "approve" | "reject") {
+  async function review(action: "approve" | "reject" | "apply") {
     if (!batch) return;
     setReviewLoading(action);
     setError("");
     const response = await fetch("/api/imports/critical", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ batchId: batch.id, action, reviewedBy: "crm" }),
+      body: JSON.stringify({ batchId: batch.id, action, reviewedBy: "crm", appliedBy: "crm" }),
     });
     const body = (await response.json()) as ReviewResponse;
     setReviewLoading(null);
@@ -63,14 +66,21 @@ export function ImportarView() {
       return;
     }
     setBatch(body.batch);
+    if (body.applyResult) {
+      setApplyResult(body.applyResult);
+      setRows(body.applyResult.rows);
+    }
   }
 
   const canReview = batch?.status === "staged";
+  const canApply = batch?.status === "approved";
   const reviewMessage =
     batch?.status === "approved"
-      ? "Staging aprobado. Sigue pendiente la aplicacion controlada a tablas finales."
+      ? "Staging aprobado. Ya puedes aplicar el lote a tablas finales."
       : batch?.status === "rejected"
         ? "Staging rechazado. Queda solo como auditoria privada."
+        : batch?.status === "applied"
+          ? "Lote aplicado con trazabilidad por fila."
         : batch
           ? "Pendiente de aprobacion humana."
           : "";
@@ -138,6 +148,32 @@ export function ImportarView() {
                   {reviewLoading === "reject" ? "Rechazando..." : "Rechazar"}
                 </button>
               </div>
+              {canApply ? (
+                <button
+                  className="btn-primary w-full disabled:opacity-50"
+                  disabled={reviewLoading !== null}
+                  onClick={() => review("apply")}
+                  type="button"
+                >
+                  {reviewLoading === "apply" ? "Aplicando..." : "Aplicar finales"}
+                </button>
+              ) : null}
+              {applyResult ? (
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="rounded-lg bg-emerald-50 p-2 text-emerald-700">
+                    <p className="font-bold">{applyResult.applied}</p>
+                    <p>aplicadas</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-100 p-2 text-ink-500">
+                    <p className="font-bold">{applyResult.skipped}</p>
+                    <p>omitidas</p>
+                  </div>
+                  <div className="rounded-lg bg-red-50 p-2 text-red-700">
+                    <p className="font-bold">{applyResult.failed}</p>
+                    <p>fallidas</p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </Card>
@@ -174,6 +210,13 @@ export function ImportarView() {
                   </div>
                 </div>
                 {row.issues.length ? <p className="mt-2 text-xs text-amber-700">{row.issues.join(" ")}</p> : null}
+                {row.apply_status && row.apply_status !== "pending" ? (
+                  <p className="mt-2 break-words text-xs text-ink-500">
+                    {row.apply_status}
+                    {row.applied_to ? ` -> ${row.applied_to}` : ""}
+                    {row.apply_error ? `: ${row.apply_error}` : ""}
+                  </p>
+                ) : null}
               </div>
             ))}
             {!rows.length ? <p className="py-8 text-center text-sm text-ink-500">Sube un archivo para generar el staging.</p> : null}

@@ -5,6 +5,7 @@ export type OrderStatus = "nuevo" | "en_revision" | "pendiente_admin" | "prepara
 export type ActivityDirection = "inbound" | "outbound" | "interno";
 export type RagPublicType = "catalogo" | "faq" | "publicidad";
 export type CriticalImportStatus = "staged" | "approved" | "rejected" | "applied";
+export type CriticalImportApplyStatus = "pending" | "applied" | "skipped" | "failed";
 export type DataMode = "live" | "setup";
 
 export interface SetupIssue {
@@ -116,6 +117,7 @@ export interface BotSafeKnowledgeMatch {
 
 export interface CriticalImportRow {
   id?: string;
+  batch_id?: string;
   row_number: number;
   raw: Json;
   mapped: Json;
@@ -123,6 +125,11 @@ export interface CriticalImportRow {
   confidence: number;
   destination: "pedidos" | "pedido_lineas" | "tarifas_privadas" | "condiciones" | "documentos_privados";
   issues: string[];
+  apply_status?: CriticalImportApplyStatus;
+  applied_to?: string | null;
+  applied_record_id?: string | null;
+  applied_at?: string | null;
+  apply_error?: string | null;
 }
 
 export interface CriticalImportBatch {
@@ -136,6 +143,15 @@ export interface CriticalImportBatch {
   row_count: number;
   created_at: string;
   approved_at?: string | null;
+}
+
+export interface CriticalImportApplyResult {
+  batch: CriticalImportBatch;
+  applied: number;
+  skipped: number;
+  failed: number;
+  rows: CriticalImportRow[];
+  errors: string[];
 }
 
 export interface DashboardSnapshot {

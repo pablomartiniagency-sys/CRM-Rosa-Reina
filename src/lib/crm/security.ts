@@ -35,15 +35,18 @@ export function classifyCriticalRow(rowNumber: number, raw: Json): CriticalImpor
   const serialized = JSON.stringify(raw);
   const keys = Object.keys(raw).join(" ");
   const hasPrice = /(precio|tarifa|importe|total|descuento|iva|margen)/i.test(keys + serialized);
-  const hasOrder = /(pedido|referencia|cantidad|linea|producto|fecha)/i.test(keys + serialized);
+  const hasOrder = /(pedido|referencia|orden|order|fecha_objetivo|fecha entrega)/i.test(keys + serialized);
+  const hasOrderLine = /(linea|producto|articulo|concepto|cantidad|unidades|talla|color)/i.test(keys + serialized);
   const hasContract = /(contrato|condicion|iban|nif|dni|factura)/i.test(keys + serialized);
 
-  const destination: CriticalImportRow["destination"] = hasPrice
-    ? "tarifas_privadas"
-    : hasContract
-      ? "condiciones"
-      : hasOrder
-        ? "pedidos"
+  const destination: CriticalImportRow["destination"] = hasOrder
+    ? hasOrderLine
+      ? "pedido_lineas"
+      : "pedidos"
+    : hasPrice
+      ? "tarifas_privadas"
+      : hasContract
+        ? "condiciones"
         : "documentos_privados";
 
   const sensitivity: CriticalImportRow["sensitivity"] = hasPrice || hasContract ? "high" : hasOrder ? "medium" : "low";

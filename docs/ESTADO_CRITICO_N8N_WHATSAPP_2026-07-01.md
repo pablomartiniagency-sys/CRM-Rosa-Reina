@@ -142,7 +142,7 @@ Cambios de estado:
 
 - Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token. Checklist en `docs/ROTACION_CREDENCIALES_PRODUCCION.md`.
 - La carpeta RAG debe mantenerse curada. Pedidos, tarifas, contratos o documentos internos deben moverse a vault privado, no a RAG publico.
-- Importaciones criticas: el CRM ya crea staging privado y permite aprobar/rechazar el lote. La aplicacion final a pedidos/tarifas/condiciones sigue pendiente y debe hacerse en un bloque separado con mapeo explicito por destino.
+- Importaciones criticas: ya existe aplicacion final controlada tras aprobacion. Falta pulir la edicion manual previa de mapeos si Rosa Reina quiere corregir fila a fila desde la UI.
 
 ## Importaciones criticas
 
@@ -153,14 +153,16 @@ Estado actual:
 - Se guarda un lote en `private.critical_import_batches`.
 - Se guardan filas en `private.critical_import_rows`.
 - La vista `Importar` permite aprobar o rechazar el staging.
-- Aprobar no aplica datos a tablas finales todavia; solo cambia estado a `approved`.
+- Aprobar solo cambia el lote a `approved`; no toca tablas finales.
+- El paso posterior `Aplicar finales` escribe datos por destino y marca cada fila como `applied`, `skipped` o `failed`.
 - Rechazar deja el staging como auditoria privada y no toca tablas finales.
+- `pedidos` y `pedido_lineas` se escriben en sus tablas estructuradas existentes.
+- `tarifas_privadas`, `condiciones` y `documentos_privados` se guardan en tablas `private` con RLS y grants solo a `service_role`.
 
 Pendiente:
 
-- Diseñar aplicadores por destino: `pedidos`, `pedido_lineas`, `tarifas_privadas`, `condiciones` y `documentos_privados`.
 - Mostrar diferencias antes de aplicar.
-- Registrar auditoria detallada de cambios finales aplicados.
+- Permitir edicion manual de destino/campos antes de aprobar.
 
 ## Auditoria reproducible
 

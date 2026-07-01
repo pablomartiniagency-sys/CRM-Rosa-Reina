@@ -9,6 +9,8 @@ const n8nApiKey = process.env.N8N_API_KEY || "";
 
 const supabaseUrl = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+const supabasePublicKey =
+  env.SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 const checks = [];
 
@@ -74,6 +76,30 @@ async function auditSupabase() {
   if (linkedActivities === 0) {
     warn("supabase.whatsapp_linkage_missing", "No linked CRM activities yet; personalization evidence needs a physical WhatsApp test");
   }
+
+  await auditCriticalImports();
+}
+
+async function auditCriticalImports() {
+  const { data, error } = await supabase.rpc("critical_import_private_audit");
+  const audit = data?.[0] ?? {};
+  expect("supabase.imports.private_audit_rpc_service_role", !error, {
+    error: error?.message,
+    audit,
+  });
+  expect("supabase.imports.row_application_columns", audit.row_application_columns === true, audit);
+  expect("supabase.imports.private_vault_tables_ready", !error && ["tarifas_privadas_count", "condiciones_count", "documentos_privados_count"].every((key) => Number(audit[key] ?? -1) >= 0), audit);
+
+  if (!supabasePublicKey) {
+    warn("supabase.imports.public_key_missing", "No publishable key available; skipped private import RPC public key probe");
+    return;
+  }
+
+  const anon = createClient(supabaseUrl, supabasePublicKey);
+  const publicProbe = await anon.rpc("critical_import_private_audit");
+  expect("supabase.imports.private_audit_rpc_blocked_for_public_key", Boolean(publicProbe.error), {
+    error: publicProbe.error?.message ?? null,
+  });
 }
 
 async function countRows(table, applyFilter) {

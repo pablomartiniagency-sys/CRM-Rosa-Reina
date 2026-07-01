@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import readXlsxFile from "read-excel-file/node";
 import { classifyCriticalRow } from "@/lib/crm/security";
-import { createCriticalImportBatch, reviewCriticalImportBatch } from "@/lib/crm/data";
+import { applyCriticalImportBatch, createCriticalImportBatch, reviewCriticalImportBatch } from "@/lib/crm/data";
 import type { Json } from "@/types/crm";
 
 export const dynamic = "force-dynamic";
@@ -75,14 +75,24 @@ export async function PATCH(request: Request) {
       batchId?: unknown;
       action?: unknown;
       reviewedBy?: unknown;
+      appliedBy?: unknown;
     };
 
     if (typeof body.batchId !== "string" || !body.batchId.trim()) {
       return NextResponse.json({ error: "Missing batchId" }, { status: 400 });
     }
 
-    if (body.action !== "approve" && body.action !== "reject") {
-      return NextResponse.json({ error: "Action must be approve or reject" }, { status: 400 });
+    if (body.action !== "approve" && body.action !== "reject" && body.action !== "apply") {
+      return NextResponse.json({ error: "Action must be approve, reject or apply" }, { status: 400 });
+    }
+
+    if (body.action === "apply") {
+      const applyResult = await applyCriticalImportBatch({
+        batchId: body.batchId,
+        appliedBy: typeof body.appliedBy === "string" && body.appliedBy.trim() ? body.appliedBy : "crm",
+      });
+
+      return NextResponse.json({ batch: applyResult.batch, status: applyResult.batch.status, applyResult });
     }
 
     const batch = await reviewCriticalImportBatch({
