@@ -102,17 +102,35 @@ async function auditN8n() {
   const identifyNode = whatsappNodes.get("Identificar Cliente");
   const openAiChatNode = whatsappNodes.get("OpenAI Chat Model");
   const openAiEmbeddingsNode = whatsappNodes.get("Embeddings OpenAI");
+  const imageAnalyzeNode = whatsappNodes.get("Imagen Analizar");
+  const adminNoticeNode = whatsappNodes.get("Aviso Administraci?n");
   const sendWhatsappNode = whatsappNodes.get("Enviar WhatsApp");
   const identifyQuery = identifyNode?.parameters?.query || "";
+  const openAiChatModel = openAiChatNode?.parameters?.model?.value || openAiChatNode?.parameters?.model?.cachedResultName;
+  const imageAnalyzeModel = imageAnalyzeNode?.parameters?.modelId?.value || imageAnalyzeNode?.parameters?.modelId?.cachedResultName;
+  const ragTable = ragNode?.parameters?.tableName?.value || ragNode?.parameters?.tableName?.cachedResultName;
 
   expect("n8n.whatsapp.trigger_credentials", Boolean(triggerNode?.credentials), {});
   expect("n8n.whatsapp.identify_postgres_credentials", Boolean(identifyNode?.credentials), {});
   expect("n8n.whatsapp.identify_phone_lookup", /contacto_metodos/.test(identifyQuery) && /valor_norm/.test(identifyQuery), {});
   expect("n8n.whatsapp.identify_history_lookup", /public\.actividades/.test(identifyQuery) && /historial_reciente/.test(identifyQuery), {});
   expect("n8n.whatsapp.openai_chat_credentials", Boolean(openAiChatNode?.credentials), {});
+  expect("n8n.whatsapp.openai_chat_model", openAiChatModel === "gpt-4.1-mini", { model: openAiChatModel });
   expect("n8n.whatsapp.openai_embeddings_credentials", Boolean(openAiEmbeddingsNode?.credentials), {});
+  expect("n8n.whatsapp.image_model", !imageAnalyzeNode || imageAnalyzeModel === "gpt-4.1-mini", { model: imageAnalyzeModel });
   expect("n8n.whatsapp.supabase_vector_credentials", Boolean(ragNode?.credentials), {});
+  expect("n8n.whatsapp.rag_table", ragTable === "documento_chunks", { tableName: ragTable });
   expect("n8n.whatsapp.send_credentials", Boolean(sendWhatsappNode?.credentials), {});
+  expect(
+    "n8n.whatsapp.admin_notice_send",
+    Boolean(adminNoticeNode?.credentials) &&
+      adminNoticeNode?.parameters?.resource === "message" &&
+      adminNoticeNode?.parameters?.operation === "send",
+    {
+      resource: adminNoticeNode?.parameters?.resource,
+      operation: adminNoticeNode?.parameters?.operation,
+    }
+  );
   if (env.WHATSAPP_PHONE_NUMBER_ID) {
     expect("n8n.whatsapp.phone_number_id_matches_env", sendWhatsappNode?.parameters?.phoneNumberId === env.WHATSAPP_PHONE_NUMBER_ID, {
       configured: sendWhatsappNode?.parameters?.phoneNumberId,
@@ -151,7 +169,7 @@ async function auditN8n() {
   expect("n8n.rag_loader.uses_rag_ingest", Boolean(ragNodes.get("rag_ingest")), {});
   expect("n8n.rag_loader.openai_embeddings_http", ragNodes.get("Generar Embedding")?.parameters?.url === "https://api.openai.com/v1/embeddings", {});
 
-  const executions = await n8n("/api/v1/executions?workflowId=MrB7ole5rzayU3MI&limit=3");
+  const executions = await n8n("/api/v1/executions?workflowId=MrB7ole5rzayU3MI&limit=10");
   const recentExecutions = (executions.data || []).map((execution) => ({
     id: execution.id,
     status: execution.status,
@@ -161,6 +179,31 @@ async function auditN8n() {
   note("n8n.whatsapp.recent_executions", recentExecutions);
   if (recentExecutions[0]?.status !== "success") {
     warn("n8n.whatsapp.latest_execution_not_success", "Latest WhatsApp execution is not success; run a new physical WhatsApp test");
+  }
+
+  const recentExecutionDetails = [];
+  for (const execution of recentExecutions.slice(0, 10)) {
+    const detail = await n8n(`/api/v1/executions/${execution.id}?includeData=true`);
+    const runData = detail.data?.resultData?.runData || {};
+    recentExecutionDetails.push({
+      id: execution.id,
+      status: execution.status,
+      hasAgent: Object.hasOwn(runData, "AI Agent"),
+      hasRag: Object.hasOwn(runData, "RAG Catalogo"),
+      hasAdminNotice: Object.hasOwn(runData, "Aviso Administraci?n"),
+      hasWhatsappSend: Object.hasOwn(runData, "Enviar WhatsApp"),
+      hasOutboundSave: Object.hasOwn(runData, "Guardar Interacci?n"),
+    });
+  }
+  note("n8n.whatsapp.recent_execution_paths", recentExecutionDetails);
+  if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasAgent && execution.hasWhatsappSend && execution.hasOutboundSave)) {
+    warn("n8n.whatsapp.no_recent_full_conversation", "No recent successful full WhatsApp conversation path found");
+  }
+  if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasRag)) {
+    warn("n8n.whatsapp.no_recent_rag_path", "No recent successful WhatsApp RAG path found");
+  }
+  if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasAdminNotice)) {
+    warn("n8n.whatsapp.no_recent_derivation_path", "No recent successful WhatsApp derivation email path found");
   }
 }
 

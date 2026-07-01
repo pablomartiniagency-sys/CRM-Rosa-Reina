@@ -123,9 +123,21 @@ Enviar desde un numero que exista en CRM:
    - Esperado: rechazo o derivacion, sin datos internos.
    - RAG audit posterior: 0 sensibles recuperables, 0 huerfanos.
 
+## Revalidacion posterior
+
+Despues del handoff de Claude se revalido n8n/Supabase en vivo. Detalle en `docs/REVALIDACION_HANDOFF_CLAUDE_2026-07-01.md`.
+
+Cambios de estado:
+
+- Ya hay ejecuciones WhatsApp reales posteriores al crash `699`.
+- Ejecucion `717`: success con camino completo de catalogo/RAG.
+- Ejecucion `721`: success con camino de derivacion y `Aviso Administraci?n`.
+- Supabase ya registra outbound WhatsApp real.
+- Sigue pendiente probar desde un telefono que exista en CRM, porque las nuevas actividades no estan vinculadas a contacto/cuenta.
+
 ## Riesgos pendientes
 
-- La ultima ejecucion WhatsApp antes del parche (`699`) aparece como `crashed` en `AI Agent` con evento interno `isArtificialRecoveredEventItem`. Hay que validar con mensajes reales tras el parche.
+- Personalizacion por telefono: las pruebas reales recientes usaron un telefono no encontrado en `contacto_metodos`, asi que no prueban vinculacion a `contacto_id`/`cuenta_id`.
 - Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token. Checklist en `docs/ROTACION_CREDENCIALES_PRODUCCION.md`.
 - La carpeta RAG debe mantenerse curada. Pedidos, tarifas, contratos o documentos internos deben moverse a vault privado, no a RAG publico.
 - Importaciones criticas: el CRM ya crea staging privado y permite aprobar/rechazar el lote. La aplicacion final a pedidos/tarifas/condiciones sigue pendiente y debe hacerse en un bloque separado con mapeo explicito por destino.
@@ -163,6 +175,7 @@ Estado de la ultima auditoria viva:
 - `supabase.rag_sensitive_zero`: pass.
 - `supabase.rag_orphans_zero`: pass.
 - `supabase.phone_methods_present`: pass.
+- `supabase.whatsapp_activity_counts`: 42 WhatsApp, 35 inbound, 7 outbound, 0 vinculadas.
 - `n8n.whatsapp.active`: pass.
 - `n8n.rag_loader.active`: pass.
 - `n8n.whatsapp.trigger_credentials`: pass.
@@ -170,9 +183,13 @@ Estado de la ultima auditoria viva:
 - `n8n.whatsapp.identify_phone_lookup`: pass.
 - `n8n.whatsapp.identify_history_lookup`: pass.
 - `n8n.whatsapp.openai_chat_credentials`: pass.
+- `n8n.whatsapp.openai_chat_model`: pass, `gpt-4.1-mini`.
 - `n8n.whatsapp.openai_embeddings_credentials`: pass.
+- `n8n.whatsapp.image_model`: pass, `gpt-4.1-mini`.
 - `n8n.whatsapp.supabase_vector_credentials`: pass.
+- `n8n.whatsapp.rag_table`: pass, `documento_chunks`.
 - `n8n.whatsapp.send_credentials`: pass.
+- `n8n.whatsapp.admin_notice_send`: pass.
 - `n8n.whatsapp.phone_number_id_matches_env`: pass.
 - `n8n.whatsapp.rag_rpc`: pass, `match_documents_whatsapp`.
 - `n8n.whatsapp.inbound_before_agent`: pass.
@@ -180,16 +197,15 @@ Estado de la ultima auditoria viva:
 - `n8n.whatsapp.outbound_saved`: pass.
 - `n8n.whatsapp.channel_raw_phone`: pass.
 - `n8n.whatsapp.derive_guard`: pass.
+- `n8n.whatsapp.recent_execution_paths`: pass, incluye camino RAG en `717` y derivacion con aviso admin en `721`.
 
-Avisos esperados hasta hacer prueba fisica:
+Avisos pendientes:
 
-- `supabase.whatsapp_outbound_missing`: no hay outbound WhatsApp real guardado todavia.
-- `supabase.whatsapp_linkage_missing`: no hay actividades vinculadas a contacto/cuenta todavia.
-- `n8n.whatsapp.latest_execution_not_success`: la ultima ejecucion registrada sigue siendo la antigua `699`, `crashed`.
+- `supabase.whatsapp_linkage_missing`: no hay actividades vinculadas a contacto/cuenta todavia porque el telefono probado no existe en `contacto_metodos`.
 
 Condicion para cerrar el gate:
 
-- Enviar prueba real desde WhatsApp.
-- Ver una ejecucion nueva en n8n con `status=success`.
-- Ver al menos una actividad inbound y una outbound nuevas en Supabase.
+- Enviar prueba real desde WhatsApp usando un telefono dado de alta en CRM.
+- Ver una ejecucion nueva en n8n con `status=success` y camino completo.
+- Ver actividad inbound y outbound nuevas en Supabase.
 - Si el telefono existe en CRM, ambas deben conservar `contacto_id` y/o `cuenta_id`.

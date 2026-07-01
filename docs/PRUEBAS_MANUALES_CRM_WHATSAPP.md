@@ -18,6 +18,7 @@
 ## WhatsApp real
 
 Enviar desde un numero vinculado a CRM si se quiere validar personalizacion.
+La ultima prueba real uso un telefono no presente en `contacto_metodos`, por eso no cerro el gate de vinculacion.
 
 | Mensaje | Esperado |
 | --- | --- |
