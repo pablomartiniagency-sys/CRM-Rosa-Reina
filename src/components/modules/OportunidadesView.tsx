@@ -27,13 +27,17 @@ export function OportunidadesView() {
             {data.leads.map((lead) => (
               <div key={lead.lead_id} className="rounded-lg border border-gray-100 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-ink-900">{lead.empresa_detectada || lead.nombre_detectado || "Lead sin nombre"}</p>
-                    <p className="text-sm text-ink-500">{lead.canal} - {lead.intent ?? "consulta"}</p>
+                  <div className="min-w-0">
+                    <p className="break-words font-semibold text-ink-900">{lead.empresa_detectada || lead.nombre_detectado || "Lead sin nombre"}</p>
+                    <p className="break-words text-sm text-ink-500">{lead.canal} - {lead.intent ?? "consulta"}</p>
+                    {lead.telefono_detectado ? <p className="break-words text-xs text-ink-400">{lead.telefono_detectado}</p> : null}
                   </div>
-                  <StatusBadge value={lead.status} />
+                  <div className="flex flex-wrap gap-2">
+                    <StatusBadge value={lead.urgencia ?? "medium"} />
+                    <StatusBadge value={lead.status} />
+                  </div>
                 </div>
-                <p className="mt-3 text-sm text-ink-600">{lead.resumen}</p>
+                <p className="mt-3 break-words text-sm text-ink-600">{lead.resumen}</p>
               </div>
             ))}
           </div>

@@ -133,8 +133,10 @@ async function auditN8n() {
   const openAiEmbeddingsNode = whatsappNodes.get("Embeddings OpenAI");
   const imageAnalyzeNode = whatsappNodes.get("Imagen Analizar");
   const adminNoticeNode = whatsappNodes.get("Aviso Administraci?n");
+  const commercialLeadNode = whatsappNodes.get("Crear Lead Comercial");
   const sendWhatsappNode = whatsappNodes.get("Enviar WhatsApp");
   const identifyQuery = identifyNode?.parameters?.query || "";
+  const commercialLeadQuery = commercialLeadNode?.parameters?.query || "";
   const openAiChatModel = openAiChatNode?.parameters?.model?.value || openAiChatNode?.parameters?.model?.cachedResultName;
   const imageAnalyzeModel = imageAnalyzeNode?.parameters?.modelId?.value || imageAnalyzeNode?.parameters?.modelId?.cachedResultName;
   const ragTable = ragNode?.parameters?.tableName?.value || ragNode?.parameters?.tableName?.cachedResultName;
@@ -150,6 +152,26 @@ async function auditN8n() {
   expect("n8n.whatsapp.supabase_vector_credentials", Boolean(ragNode?.credentials), {});
   expect("n8n.whatsapp.rag_table", ragTable === "documento_chunks", { tableName: ragTable });
   expect("n8n.whatsapp.send_credentials", Boolean(sendWhatsappNode?.credentials), {});
+  expect("n8n.whatsapp.commercial_lead_credentials", Boolean(commercialLeadNode?.credentials?.postgres), {});
+  expect("n8n.whatsapp.derive_creates_commercial_lead", whatsapp.connections?.["?Derivar?"]?.main?.[0]?.[0]?.node === "Crear Lead Comercial", {
+    connection: whatsapp.connections?.["?Derivar?"],
+  });
+  expect(
+    "n8n.whatsapp.commercial_lead_before_admin_notice",
+    whatsapp.connections?.["Crear Lead Comercial"]?.main?.[0]?.[0]?.node === "Aviso Administraci?n",
+    {
+      connection: whatsapp.connections?.["Crear Lead Comercial"],
+    }
+  );
+  expect(
+    "n8n.whatsapp.commercial_lead_sql",
+    /public\.leads/.test(commercialLeadQuery) &&
+      /public\.tareas/.test(commercialLeadQuery) &&
+      /derivacion_comercial_whatsapp/.test(commercialLeadQuery) &&
+      /equipo_ventas/.test(commercialLeadQuery) &&
+      /UPDATE public\.actividades/i.test(commercialLeadQuery),
+    {}
+  );
   expect(
     "n8n.whatsapp.admin_notice_send",
     Boolean(adminNoticeNode?.credentials) &&
@@ -185,11 +207,13 @@ async function auditN8n() {
   });
   expect("n8n.whatsapp.inbound_always_outputs", entradaQuery.includes("EXISTS (SELECT 1 FROM ins) AS inserted"), {});
   expect("n8n.whatsapp.outbound_saved", /'outbound'/.test(salidaQuery) && salidaQuery.includes(":reply"), {});
+  expect("n8n.whatsapp.outbound_links_commercial_lead", /lead_id/.test(salidaQuery) && /derivacion_comercial/.test(salidaQuery), {});
   expect("n8n.whatsapp.channel_raw_phone", !/channel_raw\s*=\s*'whatsapp'/.test(`${entradaQuery}\n${salidaQuery}`), {});
 
   const preparar = whatsappNodes.get("Preparar Respuesta");
   const prepararCode = preparar?.parameters?.jsCode || "";
   expect("n8n.whatsapp.derive_guard", prepararCode.includes("commercialIntent") && prepararCode.includes("leakedCommercialData"), {});
+  expect("n8n.whatsapp.derive_customer_handoff_message", prepararCode.includes("equipo comercial") && prepararCode.includes("ventas"), {});
 
   const trigger = ragNodes.get("Google Drive Trigger");
   expect("n8n.rag_loader.folder_rag", trigger?.parameters?.folderToWatch?.cachedResultName === "RAG", {
@@ -221,6 +245,7 @@ async function auditN8n() {
       status: execution.status,
       hasAgent: Object.hasOwn(runData, "AI Agent"),
       hasRag: Object.hasOwn(runData, "RAG Catalogo"),
+      hasCommercialLead: Object.hasOwn(runData, "Crear Lead Comercial"),
       hasAdminNotice: Object.hasOwn(runData, "Aviso Administraci?n"),
       hasWhatsappSend: Object.hasOwn(runData, "Enviar WhatsApp"),
       hasOutboundSave: Object.hasOwn(runData, "Guardar Interacci?n"),
@@ -233,8 +258,8 @@ async function auditN8n() {
   if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasRag)) {
     warn("n8n.whatsapp.no_recent_rag_path", "No recent successful WhatsApp RAG path found");
   }
-  if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasAdminNotice)) {
-    warn("n8n.whatsapp.no_recent_derivation_path", "No recent successful WhatsApp derivation email path found");
+  if (!recentExecutionDetails.some((execution) => execution.status === "success" && execution.hasCommercialLead && execution.hasAdminNotice)) {
+    warn("n8n.whatsapp.no_recent_derivation_path", "No recent successful WhatsApp derivation path with lead creation found");
   }
 }
 
