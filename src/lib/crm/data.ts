@@ -6,6 +6,8 @@ import type {
   Activity,
   BotSafeKnowledgeMatch,
   Contact,
+  CriticalImportBatch,
+  CriticalImportStatus,
   CriticalImportRow,
   DashboardSnapshot,
   Lead,
@@ -31,6 +33,18 @@ type LooseRpcClient = {
 
 type LooseInsertTable = {
   insert: (value: unknown) => Promise<{ error: Error | null }>;
+};
+
+type LooseUpdateTable = {
+  update: (value: unknown) => {
+    eq: (column: string, value: unknown) => {
+      eq: (column: string, value: unknown) => {
+        select: (columns: string) => {
+          single: () => Promise<{ data: unknown; error: Error | null }>;
+        };
+      };
+    };
+  };
 };
 
 type LoosePrivateSchema = {
@@ -378,4 +392,29 @@ export async function createCriticalImportBatch(input: {
   }
 
   return batch;
+}
+
+export async function reviewCriticalImportBatch(input: {
+  batchId: string;
+  action: "approve" | "reject";
+  reviewedBy?: string | null;
+}): Promise<CriticalImportBatch> {
+  const client = getRequiredDataClient();
+  const privateSchema = (client as unknown as LooseSchemaClient).schema("private");
+  const batches = privateSchema.from("critical_import_batches") as LooseUpdateTable;
+  const status: CriticalImportStatus = input.action === "approve" ? "approved" : "rejected";
+
+  const { data, error } = await batches
+    .update({
+      status,
+      approved_by: input.reviewedBy ?? "crm",
+      approved_at: new Date().toISOString(),
+    })
+    .eq("id", input.batchId)
+    .eq("status", "staged")
+    .select("id,file_name,file_type,source,status,uploaded_by,approved_by,row_count,created_at,approved_at")
+    .single();
+
+  if (error) throw error;
+  return data as CriticalImportBatch;
 }

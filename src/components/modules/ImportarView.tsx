@@ -4,20 +4,27 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ModuleHeader, StatusBadge } from "@/components/modules/Shared";
-import type { CriticalImportRow } from "@/types/crm";
+import type { CriticalImportBatch, CriticalImportRow, CriticalImportStatus } from "@/types/crm";
 
 type ImportResponse = {
-  batch?: { id: string; file_name: string; status: string; row_count: number };
+  batch?: CriticalImportBatch;
   rows?: CriticalImportRow[];
+  error?: string;
+};
+
+type ReviewResponse = {
+  batch?: CriticalImportBatch;
+  status?: CriticalImportStatus;
   error?: string;
 };
 
 export function ImportarView() {
   const [file, setFile] = useState<File | null>(null);
   const [rows, setRows] = useState<CriticalImportRow[]>([]);
-  const [batchId, setBatchId] = useState<string | null>(null);
+  const [batch, setBatch] = useState<CriticalImportBatch | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState<"approve" | "reject" | null>(null);
 
   const highSensitivity = useMemo(() => rows.filter((row) => row.sensitivity === "high").length, [rows]);
 
@@ -37,8 +44,36 @@ export function ImportarView() {
       return;
     }
     setRows(body.rows ?? []);
-    setBatchId(body.batch?.id ?? null);
+    setBatch(body.batch ?? null);
   }
+
+  async function review(action: "approve" | "reject") {
+    if (!batch) return;
+    setReviewLoading(action);
+    setError("");
+    const response = await fetch("/api/imports/critical", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ batchId: batch.id, action, reviewedBy: "crm" }),
+    });
+    const body = (await response.json()) as ReviewResponse;
+    setReviewLoading(null);
+    if (!response.ok || !body.batch) {
+      setError(body.error ?? "No se pudo revisar el lote");
+      return;
+    }
+    setBatch(body.batch);
+  }
+
+  const canReview = batch?.status === "staged";
+  const reviewMessage =
+    batch?.status === "approved"
+      ? "Staging aprobado. Sigue pendiente la aplicacion controlada a tablas finales."
+      : batch?.status === "rejected"
+        ? "Staging rechazado. Queda solo como auditoria privada."
+        : batch
+          ? "Pendiente de aprobacion humana."
+          : "";
 
   return (
     <section>
@@ -66,10 +101,44 @@ export function ImportarView() {
               {loading ? "Procesando..." : "Crear staging"}
             </button>
           </form>
-          {batchId ? (
-            <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-              Lote creado: {batchId}. Pendiente de aprobacion humana.
-            </p>
+          {batch ? (
+            <div className="mt-4 space-y-3 rounded-lg bg-gray-50 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-ink-900">Lote {batch.id}</p>
+                <Badge
+                  variant={
+                    batch.status === "approved"
+                      ? "success"
+                      : batch.status === "rejected"
+                        ? "danger"
+                        : batch.status === "applied"
+                          ? "info"
+                          : "warning"
+                  }
+                >
+                  {batch.status}
+                </Badge>
+              </div>
+              <p className="text-xs text-ink-500">{reviewMessage}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  className="btn-primary disabled:opacity-50"
+                  disabled={!canReview || reviewLoading !== null}
+                  onClick={() => review("approve")}
+                  type="button"
+                >
+                  {reviewLoading === "approve" ? "Aprobando..." : "Aprobar"}
+                </button>
+                <button
+                  className="btn-secondary border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  disabled={!canReview || reviewLoading !== null}
+                  onClick={() => review("reject")}
+                  type="button"
+                >
+                  {reviewLoading === "reject" ? "Rechazando..." : "Rechazar"}
+                </button>
+              </div>
+            </div>
           ) : null}
         </Card>
 

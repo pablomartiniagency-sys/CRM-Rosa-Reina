@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import readXlsxFile from "read-excel-file/node";
 import { classifyCriticalRow } from "@/lib/crm/security";
-import { createCriticalImportBatch } from "@/lib/crm/data";
+import { createCriticalImportBatch, reviewCriticalImportBatch } from "@/lib/crm/data";
 import type { Json } from "@/types/crm";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +64,37 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Critical import failed" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const body = (await request.json()) as {
+      batchId?: unknown;
+      action?: unknown;
+      reviewedBy?: unknown;
+    };
+
+    if (typeof body.batchId !== "string" || !body.batchId.trim()) {
+      return NextResponse.json({ error: "Missing batchId" }, { status: 400 });
+    }
+
+    if (body.action !== "approve" && body.action !== "reject") {
+      return NextResponse.json({ error: "Action must be approve or reject" }, { status: 400 });
+    }
+
+    const batch = await reviewCriticalImportBatch({
+      batchId: body.batchId,
+      action: body.action,
+      reviewedBy: typeof body.reviewedBy === "string" && body.reviewedBy.trim() ? body.reviewedBy : "crm",
+    });
+
+    return NextResponse.json({ batch, status: batch.status });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Critical import review failed" },
       { status: 500 }
     );
   }

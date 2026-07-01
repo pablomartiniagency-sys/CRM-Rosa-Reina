@@ -126,9 +126,27 @@ Enviar desde un numero que exista en CRM:
 ## Riesgos pendientes
 
 - La ultima ejecucion WhatsApp antes del parche (`699`) aparece como `crashed` en `AI Agent` con evento interno `isArtificialRecoveredEventItem`. Hay que validar con mensajes reales tras el parche.
-- Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token.
+- Las claves compartidas en chat deben rotarse antes de produccion: n8n API key, OpenAI, Supabase secret, Meta token. Checklist en `docs/ROTACION_CREDENCIALES_PRODUCCION.md`.
 - La carpeta RAG debe mantenerse curada. Pedidos, tarifas, contratos o documentos internos deben moverse a vault privado, no a RAG publico.
-- Importaciones criticas siguen como siguiente bloque: staging + revision humana + aprobacion antes de tocar tablas finales.
+- Importaciones criticas: el CRM ya crea staging privado y permite aprobar/rechazar el lote. La aplicacion final a pedidos/tarifas/condiciones sigue pendiente y debe hacerse en un bloque separado con mapeo explicito por destino.
+
+## Importaciones criticas
+
+Estado actual:
+
+- Upload CRM acepta Excel/CSV/TSV estructurado.
+- El servidor clasifica filas por sensibilidad, confianza y destino sugerido.
+- Se guarda un lote en `private.critical_import_batches`.
+- Se guardan filas en `private.critical_import_rows`.
+- La vista `Importar` permite aprobar o rechazar el staging.
+- Aprobar no aplica datos a tablas finales todavia; solo cambia estado a `approved`.
+- Rechazar deja el staging como auditoria privada y no toca tablas finales.
+
+Pendiente:
+
+- Diseñar aplicadores por destino: `pedidos`, `pedido_lineas`, `tarifas_privadas`, `condiciones` y `documentos_privados`.
+- Mostrar diferencias antes de aplicar.
+- Registrar auditoria detallada de cambios finales aplicados.
 
 ## Auditoria reproducible
 
