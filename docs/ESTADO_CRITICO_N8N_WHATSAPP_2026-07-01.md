@@ -34,6 +34,7 @@ Se aplico parche en n8n:
 
 - Nuevo nodo `Guardar Entrada` entre `Identificar Cliente` y `AI Agent`.
 - `Guardar Entrada` inserta `actividades.direccion = inbound` antes de llamar al agente.
+- `Guardar Entrada` devuelve siempre una fila: si el mensaje ya existia por idempotencia, recupera la actividad previa y deja pasar el item al `AI Agent`.
 - El nodo existente `Guardar Interaccion` queda despues de `Enviar WhatsApp` y ahora inserta `actividades.direccion = outbound`.
 - El outbound usa `message_id_externo = <message_id>:reply`.
 - Ambos inserts conservan `contacto_id` y `cuenta_id` si la identificacion los resuelve.
