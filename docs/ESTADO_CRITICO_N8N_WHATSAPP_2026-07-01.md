@@ -85,6 +85,22 @@ Prueba local de la misma logica usada en `Preparar Respuesta`:
 - Salida del modelo con cifra comercial -> `derivar=true`.
 - Salida del modelo que ya empieza por `[DERIVAR]` -> `derivar=true`.
 
+## Validacion SQL de actividades
+
+Se ejecuto una prueba SQL con `message_id_externo` prefijado `codex-audit-` para validar las rutas equivalentes a n8n:
+
+- Insert inbound: correcto.
+- Camino idempotente inbound: mantiene item para el siguiente nodo.
+- Insert outbound: correcto.
+- `channel_raw`: telefono real simulado, no literal `whatsapp`.
+- Filas activas de prueba restantes: 0.
+
+Las filas de auditoria quedaron soft-deleted por el mecanismo de la tabla, sin afectar datos reales.
+
+## Limite de prueba automatica
+
+La API publica de n8n permite auditar workflows y ejecuciones, pero no ofrece un endpoint publico documentado para ejecutar arbitrariamente un workflow WhatsApp por ID como si entrara un mensaje real. Por eso el gate final sigue siendo una prueba fisica desde WhatsApp.
+
 ## Pruebas fisicas pendientes desde WhatsApp
 
 Enviar desde un numero que exista en CRM:
